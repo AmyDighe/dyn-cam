@@ -32,7 +32,7 @@ sigma <- 1/duration_immunity # default =
 ## 1 would mean mAbs/Abs afford no protection at all
 
 Ab_susc <- 0.25 # default = 
-mAb_susc <- 1 # default = 
+mAb_susc <- 1 # default = 0
 
 # input values for the age dependent death rate
 

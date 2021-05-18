@@ -64,25 +64,30 @@ mu[N_age] <- mu_adult_over_4
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection
 ###########################
-gamma <- user(0.05)
+gamma <- user(0.05) # (/day) 
 
 ###################################################
 ## rate at which complete immunity wanes R --> S ## is it even legit to have complete immunity for any period?
 ###################################################
-sigma <- user(0.0005)
+sigma <- user(0.0005) # (/day) to be taken from catalytic work eventually
 
+###############################################################
+## rate at which maternally-acquired immunity wanes Sm --> S ##
+###############################################################
+sigma_m <- user(0.006) # (/day) to be taken from catalytic work eventually
 
 ##############################################################################################################
 # CONVERTING THESE RATES --> PROBABILITIES
 # the above boil down to 7 rates which are converted to probabilities below
 ##############################################################################################################
-p_alpha <- 1 - exp(-alpha)
+p_alpha <- 1 - exp(-alpha) # prob birth
 p_infection <- 1 - exp(-rate_infection)
 p_infection_mAb <- 1 - exp(-rate_infection_mAb)
 p_reinfection <- 1 - exp(-rate_reinfection)
-p_mu[1:N_age] <- 1 - exp(-mu[i])
-p_gamma <- 1 - exp(-gamma)
-p_sigma <- 1 - exp(-sigma)
+p_mu[1:N_age] <- 1 - exp(-mu[i]) # prob death
+p_gamma <- 1 - exp(-gamma) # prob recovery
+p_sigma <- 1 - exp(-sigma) # prob waned
+p_sigma_m <- 1 - exp(-sigma_m) #prob mAbs waned
 
 ##############################################################################################################
 # OUTFLOWS
@@ -91,7 +96,7 @@ p_sigma <- 1 - exp(-sigma)
 ##############################################################################################################
 
 #compartments are:
-# Sm = susceptible but protected by mAbs (an opion for dromedaries in the first 6 month wide age classes)
+# Sm = susceptible but protected by mAbs
 # S = susceptible
 # I = infected and infectious
 # R = recovered and completely immune
@@ -100,8 +105,7 @@ p_sigma <- 1 - exp(-sigma)
 # R2 = recovered & completely immune for a 2nd+ time (allows those infected >once to be counted - R would not)
 
 # probability of leaving each compartment for any reason (other than ageing which is dealt with later)
-p_Sm[1:6] <- 1 - exp(- (rate_infection_mAb + mu[i])) # probability of leaving Sm 
-p_Sm[7:N_age] <- 0
+p_Sm[1:N_age] <- 1 - exp(- (sigma_m + rate_infection_mAb + mu[i])) # probability of leaving Sm 
 p_S[1:N_age] <- 1 - exp(- (rate_infection + mu[i])) # probability of leaving S
 p_I[1:N_age] <- 1 - exp(- (gamma + mu[i])) # probability of leaving I
 p_R[1:N_age] <- 1 - exp(- (sigma + mu[i])) # probability of leaving R
@@ -123,7 +127,8 @@ outflow_R2[1:N_age] <- rbinom(R2[i], prob = p_R2[i])
 # first 2 years of life are classed into 24 month wide age classes, followed 2 1-year wide age classes
 # then in class 27 when camels are +4 there is no further ageing - they remain there until they die
 
-aged_Sm[1:6] <- if(tt %% 30 == 0) Sm[i] - outflow_Sm[i] else 0 # ageing happens every month
+aged_Sm[1:24] <- if(tt %% 30 == 0) Sm[i] - outflow_Sm[i] else 0 # ageing happens every month
+aged_Sm[25:26] <- if(tt %% 360 == 0) Sm[i] - outflow_Sm[i] else 0 # ageing happens every year
 aged_S[1:24] <- if(tt %% 30 == 0) S[i] - outflow_S[i] else 0 # ageing happens every month
 aged_S[25:26] <- if(tt %% 360 == 0) S[i] - outflow_S[i] else 0 # ageing happens every year
 aged_I[1:24] <- if(tt %% 30 == 0) I[i] - outflow_I[i] else 0 # ageing happens every month
@@ -149,15 +154,17 @@ aged_R2[25:26] <- if(tt %% 360 == 0) R2[i] - outflow_R2[i] else 0 # ageing happe
 ##################################################
 
 #normalising the probabilities 
-norm_p_infection_mAb[1:N_age] <- p_infection_mAb/(p_infection_mAb + p_mu[i])
+norm_p_sigma_m[1:N_age] <- p_sigma_m/(p_sigma_m + p_infection_mAb + p_mu[i])
+norm_p_infection_mAb[1:N_age] <- p_infection_mAb/(p_sigma_m + p_infection_mAb + p_mu[i])
 norm_p_infection[1:N_age] <- p_infection/(p_infection + p_mu[i])
 norm_p_reinfection[1:N_age] <- p_reinfection/(p_reinfection + p_mu[i])
 norm_p_gamma[1:N_age] <- p_gamma/(p_gamma + p_mu[i])
 norm_p_sigma[1:N_age] <- p_sigma/(p_sigma + p_mu[i])
 
 # number of new infections, recoveries and newly susceptible
-new_infections[1:N_age] <- rbinom(outflow_S[i], prob = norm_p_infection[i])
+new_waned_mAb[1:N_age] <- rbinom(outflow_Sm[i], prob = norm_p_sigma_m[i])
 new_infections_mAb[1:N_age] <- rbinom(outflow_Sm[i], prob = norm_p_infection_mAb[i])
+new_infections[1:N_age] <- rbinom(outflow_S[i], prob = norm_p_infection[i])
 new_recoveries[1:N_age] <- rbinom(outflow_I[i], prob = norm_p_gamma[i])
 new_waned[1:N_age] <- rbinom(outflow_R[i], prob = norm_p_sigma[i])
 new_reinfections[1:N_age] <- rbinom(outflow_S2[i], prob = norm_p_reinfection[i])
@@ -172,7 +179,7 @@ delta <- user() # modulates the seasonality of births (1 being strongly seasonal
 pi <- 3.14159 # odin doesn't have pi
 
 # calculating a seasonal birthrate, with a one year periodicity, not too sharp peak
-birth_rate <- N_0 * p_alpha * (1 + (delta *(cos(3 * cos(pi * tt / 360))))) # N_0 is the intial population size
+birth_rate <- N_0 * p_alpha * (1 + (delta *(cos(2 * pi * tt / 360)))) # N_0 is the initial population size
 new_births <- rpois(birth_rate) #per day
 
 births_protected <- rbinom(new_births, prob = seropoz_A4) # of those born, these will be protected by mAbs
@@ -182,7 +189,7 @@ births_not_protected <- new_births - births_protected # of those born, these wil
 ## importation process ##
 #########################
 
-importation_rate <- user(0.01) # should be proportional to poulation size?
+importation_rate <- user(0.01) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
 imp_t <- user() # a user defined time at which cases are imported if you want a one off importation event
 
@@ -191,9 +198,14 @@ imp_t <- user() # a user defined time at which cases are imported if you want a 
 # time-step = 1 day
 ###############################################################################################################
 
+## tt %% 30 == 0 identifies the timesteps where ageing occurs in the first 24 age classes.
+## when ageing occurs we need to allow ageing and change in disease states to happen in a single time-step
+## -aged_I etc. in the else clause is actually redundant
+## all importations (whether using rate or pulse) occur into age class 25 (2-3 years old)
+
 update(Sm[1]) <- Sm[1] - outflow_Sm[1] - aged_Sm[1] + births_protected
-update(Sm[2:6]) <- Sm[i] - outflow_Sm[i] - aged_Sm[i] + aged_Sm[i-1]
-update(Sm[7:N_age]) <- 0
+update(Sm[2:26]) <- Sm[i] - outflow_Sm[i] - aged_Sm[i] + aged_Sm[i-1]
+update(Sm[N_age]) <- Sm[N_age] - outflow_Sm[i] + aged_Sm[(N_age - 1)]
 
 update(S[1]) <- S[1] - outflow_S[1] - aged_S[1] + births_not_protected
 update(S[2:6]) <- S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1]
@@ -201,7 +213,7 @@ update(S[7]) <- S[7] - outflow_S[7] - aged_S[7] + aged_S[6] + aged_Sm[6]
 update(S[8:26]) <- S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1]
 update(S[N_age]) <- S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)]
 
-update(I[1]) <-  if (tt %% 30 ==0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] - aged_I[1] + new_infections[1] + new_infections_mAb[1]
+update(I[1]) <-  if (tt %% 30 == 0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] - aged_I[1] + new_infections[1] + new_infections_mAb[1]
 update(I[2:6]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1]
 update(I[7]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + aged_I[i - 1]
 update(I[8:24]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + aged_I[i - 1]
@@ -275,7 +287,7 @@ births_det[1:360] <- rpois(births_detr[i])
 ## empty into the 4th year and then the adult compartment. 
 ## Birthrate will be set to balance summed death rate of this age distribution.
 
-a_max <- 30 ## estimated max number of years spent in the last age class before death (only 1% of the population alove after 32 yrs)
+a_max <- 30 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
             ## (calculated in "calculating_a_max.R using exp decay mod)
 
 S_ini[1] <- 0
