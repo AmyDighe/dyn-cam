@@ -178,8 +178,9 @@ new_waned_2[1:N_age] <- rbinom(outflow_R2[i], prob = norm_p_sigma[i])
 delta <- user() # modulates the seasonality of births (1 being strongly seasonal, 0 being not at all seasonal)
 pi <- 3.14159 # odin doesn't have pi
 
-# calculating a seasonal birthrate, with a one year periodicity, not too sharp peak
-birth_rate <- N_0 * p_alpha * (1 + (delta *(cos(2 * pi * tt / 360)))) # N_0 is the initial population size
+# calculating a seasonal birthrate, with a one year periodicity, not too sharp peak. 
+# can use alpha rather than p_alpha here (bc not coming from a finite pop)
+birth_rate <- N_0 * alpha * (1 + (delta *(cos(2 * pi * tt / 360)))) # N_0 is the initial population size
 new_births <- rpois(birth_rate) #per day
 
 births_protected <- rbinom(new_births, prob = seropoz_A4) # of those born, these will be protected by mAbs
@@ -200,25 +201,24 @@ imp_t <- user() # a user defined time at which cases are imported if you want a 
 
 ## tt %% 30 == 0 identifies the timesteps where ageing occurs in the first 24 age classes.
 ## when ageing occurs we need to allow ageing and change in disease states to happen in a single time-step
-## -aged_I etc. in the else clause is actually redundant
+## -aged_I etc. in the else clause is actually redundant as it =0 except at ageing timepoints
 ## all importations (whether using rate or pulse) occur into age class 25 (2-3 years old)
 
+# no need for tt %% here as no inflows
 update(Sm[1]) <- Sm[1] - outflow_Sm[1] - aged_Sm[1] + births_protected
 update(Sm[2:26]) <- Sm[i] - outflow_Sm[i] - aged_Sm[i] + aged_Sm[i-1]
 update(Sm[N_age]) <- Sm[N_age] - outflow_Sm[i] + aged_Sm[(N_age - 1)]
 
-update(S[1]) <- S[1] - outflow_S[1] - aged_S[1] + births_not_protected
-update(S[2:6]) <- S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1]
-update(S[7]) <- S[7] - outflow_S[7] - aged_S[7] + aged_S[6] + aged_Sm[6]
-update(S[8:26]) <- S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1]
-update(S[N_age]) <- S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)]
+#26 is separate because the width of 25 is 360 rather than 30
+update(S[1]) <- if(tt %% 30 == 0) S[1] - outflow_S[1] - aged_S[1] + births_not_protected else S[1] - outflow_S[1] - aged_S[1] + new_waned_mAb[1] + births_not_protected 
+update(S[2:25]) <- if(tt %% 30 == 0) S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1] + new_waned_mAb[i-1] else S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1] + new_waned_mAb[i]
+update(S[26]) <- if(tt %% 360 == 0) S[26] - outflow_S[26] - aged_S[26] + aged_S[25] + new_waned_mAb[25] else S[26] - outflow_S[26] - aged_S[26] + aged_S[25] + new_waned_mAb[26]
+update(S[N_age]) <- if(tt %% 360 == 0) S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + new_waned_mAb[N_age - 1] else S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + new_waned_mAb[N_age]
 
+#26 also has imported cases going in either daily or on a set day (day set to not coincide with ageing)
 update(I[1]) <-  if (tt %% 30 == 0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] - aged_I[1] + new_infections[1] + new_infections_mAb[1]
-update(I[2:6]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1]
-update(I[7]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + aged_I[i - 1]
-update(I[8:24]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + aged_I[i - 1]
-update(I[25]) <- if(tt %% 30 == 0) I[25] - outflow_I[25] - aged_I[25] + new_infections[24] + new_infections_mAb[24] + aged_I[24] + imported_cases else if(tt == imp_t) 1 +  I[25] - outflow_I[25] - aged_I[25] + new_infections[25] + aged_I[24] + imported_cases else I[25] - outflow_I[25] - aged_I[25] + new_infections[25] + aged_I[24] + imported_cases
-update(I[26]) <- if(tt %% 360 == 0) I[26] - outflow_I[26] - aged_I[26] + new_infections[25] + aged_I[25] else I[26] - outflow_I[26] - aged_I[26] + new_infections[26] + aged_I[25]
+update(I[2:25]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1]
+update(I[26]) <- if(tt %% 360 == 0) I[26] - outflow_I[26] - aged_I[26] + new_infections[25] + new_infections_mAb[25] + aged_I[25] + imported_cases else if(tt == imp_t) 1 + I[26] - outflow_I[26] - aged_I[26] + new_infections[26] + new_infections_mAb[26] + aged_I[25] + imported_cases else I[26] - outflow_I[26] - aged_I[26] + new_infections[26] + new_infections_mAb[26] + aged_I[25] + imported_cases
 update(I[N_age]) <- if(tt %% 360 == 0) I[N_age] - outflow_I[N_age] + sum(new_infections[26:N_age]) + aged_I[(N_age - 1)] else I[N_age] - outflow_I[N_age] + new_infections[N_age] + aged_I[(N_age - 1)]
 
 update(R[1]) <- if(tt %% 30 == 0) R[1] - outflow_R[1] - aged_R[1] else R[1] - outflow_R[1] - aged_R[1] + new_recoveries[1]
@@ -245,7 +245,7 @@ update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning
 
 ## record total population size and seroprevalence in each age group, and in adults >4
 
-N <- (sum(Sm[1:6]) + sum(S[1:N_age]) + sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))
+N <- (sum(Sm[1:N_age]) + sum(S[1:N_age]) + sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))
 
 update(seroprevalence[1:N_age]) <- (I[i] + R[i] + S2[i] + I2[i] + R2[i]) / (Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i] + R2[i])
 
@@ -277,7 +277,7 @@ N_0 <- user(1000) # user-defined
 
 ## setting initial conditions using the equilibrium solution for age distribution
                            
-births_detr[1:360] <- 10000000 * p_alpha * (1 + delta*(cos(3 * cos(pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
+births_detr[1:360] <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
 births_det[1:360] <- rpois(births_detr[i]) 
 
 
@@ -347,7 +347,7 @@ S_ini_p[1:N_age] <- round((S_ini[i] / sum(S_ini[1:N_age])) * N_0)
 #########################################
 
 # total number of individuals still protected by maternal immunity
-output(M) <- sum(Sm[1:6])
+output(M) <- sum(Sm[1:N_age])
 
 output(S_1) <- sum(S[1:N_age]) # susceptible individuals never infected
 output(I_1) <- sum(I[1:N_age]) # individuals infectious for the 1st time
@@ -356,12 +356,12 @@ output(S_2) <- sum(S2[1:N_age]) # susceptible individuals whose immunity has wan
 output(I_2) <- sum(I2[1:N_age]) # individuals infectious for the 2nd+ time
 output(R_2) <- sum(R2[1:N_age]) # individuals recovered from 2nd+ infections
 
-output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:6]) # total number of susceptible individuals
+output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:N_age]) # total number of susceptible individuals
 output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) # total number of infectious individuals
 output(Rtot) <- sum(R[1:N_age]) + sum(R2[1:N_age]) # total number of recovered individuals 
 
 output(N) <- N # total number of individuals
-output(N_J) <- sum(Sm[1:6]) + sum(S[1:13]) + sum(S2[1:13]) + sum(I[1:13]) + sum(I2[1:13]) + sum(R[1:13]) + sum(R2[1:13])
+output(N_J) <- sum(Sm[1:24]) + sum(S[1:24]) + sum(S2[1:24]) + sum(I[1:24]) + sum(I2[1:24]) + sum(R[1:24]) + sum(R2[1:24])
 output(N_A) <- sum(S[25:N_age]) + sum(S2[25:N_age]) + sum(I[25:N_age]) + sum(I2[25:N_age]) + sum(R[25:N_age]) + sum(R2[25:N_age])
 
 ####################
@@ -369,7 +369,7 @@ output(N_A) <- sum(S[25:N_age]) + sum(S2[25:N_age]) + sum(I[25:N_age]) + sum(I2[
 ####################
 output(seropoz_A) <- 100 * (sum(S2[25:N_age]) + sum(I[25:N_age]) + sum(I2[25:N_age]) + sum(R[25:N_age]) + sum(R2[25:N_age]))/(sum(S[25:N_age]) + sum(S2[25:N_age]) + sum(I[25:N_age]) + sum(I2[25:N_age]) + sum(R[25:N_age]) + sum(R2[25:N_age]))
 output(seropoz_J) <- 100 * (sum(I[1:24]) + sum(R[1:24]) + sum(S2[1:24]) + sum(I2[1:24]) + sum(R2[1:24])) / (sum(Sm[1:24]) + sum(S[1:24]) + sum(I[1:24]) + sum(R[1:24]) + sum(S2[1:24]) + sum(I2[1:24]) + sum(R2[1:24]))
-output(seropz_tot) <- 100 * (sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))/(sum(Sm[1:24]) + sum(S[1:N_age]) + sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))
+output(seropz_tot) <- 100 * (sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))/(sum(Sm[1:N_age]) + sum(S[1:N_age]) + sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age]) + sum(I2[1:N_age]) + sum(R2[1:N_age]))
 
 ############################
 ## age at first infection ##
@@ -432,7 +432,7 @@ dim(new_reinfections) <- N_age
 dim(new_recoveries_2) <- N_age
 dim(new_waned_2) <- N_age
 
-dim(aged_Sm) <- N_age
+dim(aged_Sm) <- 26
 dim(aged_S) <- 26
 dim(aged_I) <- 26
 dim(aged_R) <- 26
