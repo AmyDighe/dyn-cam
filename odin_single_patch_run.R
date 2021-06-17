@@ -47,16 +47,16 @@ mu_adult_over_4 <- 0.0005 # death rate in adulthood (>4 years)
 N_0 <- 100000
 
 # input the time period that you wish to run the model for (in days)
-time_period <- 50000#36000 
+time_period <- 36000 
 t <- seq(0:time_period)
 
 # set importation rate for introducing infectious individuals
 importation_rate <- 0
 
 # if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 20000  
+imp_t <- 15000  
 
-# set a level of seaonality for births (1 being strongly seasonal, 0 being not at all seasonal)
+# set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
 
 
@@ -75,5 +75,11 @@ plot(out$Ntot, type= "l")
 
 out_sum <- out[, c(2, 257, 247:253)]
 out_sum_long <- reshape2::melt(out_sum, id.var = "tt")
-ggplot(data = out_sum_long) + geom_line(aes(x = tt, y = value, color = variable))
+ggplot(data = out_sum_long) + geom_line(aes(x = tt, y = value, color = variable))+theme_minimal()
+
+par(mfrow = c(5, 6))
+par(mar = c(0,3,0,0), las=1)
+
+plot(out$'N[27]'[1300:2700], type= "l", xaxt = 'n')
+abline(v = 2000 - 1300, col = "red")
 

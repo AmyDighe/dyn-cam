@@ -213,19 +213,19 @@ update(Sm[N_age]) <- Sm[N_age] - outflow_Sm[i] + aged_Sm[(N_age - 1)]
 
 #26 is separate because the width of 25 is 360 rather than 30
 update(S[1]) <- if(tt %% 30 == 0) S[1] - outflow_S[1] - aged_S[1] + births_not_protected else S[1] - outflow_S[1] - aged_S[1] + new_waned_mAb[1] + births_not_protected 
-update(S[2:25]) <- if(tt %% 30 == 0) S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1] + new_waned_mAb[i-1] else S[i] - outflow_S[i] - aged_S[i] + aged_S[i-1] + new_waned_mAb[i]
-update(S[26]) <- if(tt %% 360 == 0) S[26] - outflow_S[26] - aged_S[26] + aged_S[25] + new_waned_mAb[25] else S[26] - outflow_S[26] - aged_S[26] + aged_S[25] + new_waned_mAb[26]
-update(S[N_age]) <- if(tt %% 360 == 0) S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + new_waned_mAb[N_age - 1] else S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + new_waned_mAb[N_age]
+update(S[2:25]) <- if(tt %% 30 == 0) S[i] - outflow_S[i] - aged_S[i] + aged_S[i - 1] + new_waned_mAb[i - 1] else S[i] - outflow_S[i] - aged_S[i] + aged_S[i - 1] + new_waned_mAb[i]
+update(S[26]) <- if(tt %% 360 == 0) S[i] - outflow_S[i] - aged_S[i] + aged_S[i - 1] + new_waned_mAb[i - 1] else S[i] - outflow_S[i] - aged_S[i] + aged_S[i - 1] + new_waned_mAb[i]
+update(S[N_age]) <- if(tt %% 360 == 0) S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + sum(new_waned_mAb[26:N_age]) else S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + new_waned_mAb[N_age]
 
 #26 also has imported cases going in either daily or on a set day (day set to not coincide with ageing)
 update(I[1]) <-  if (tt %% 30 == 0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] - aged_I[1] + new_infections[1] + new_infections_mAb[1]
 update(I[2:25]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1]
-update(I[26]) <- if(tt %% 360 == 0) I[26] - outflow_I[26] - aged_I[26] + new_infections[25] + new_infections_mAb[25] + aged_I[25] + imported_cases else if(tt == imp_t) 1 + I[26] - outflow_I[26] - aged_I[26] + new_infections[26] + new_infections_mAb[26] + aged_I[25] + imported_cases else I[26] - outflow_I[26] - aged_I[26] + new_infections[26] + new_infections_mAb[26] + aged_I[25] + imported_cases
+update(I[26]) <- if(tt %% 360 == 0) I[26] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] + imported_cases else if(tt == imp_t) 1 + I[i] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1] + imported_cases else I[26] - outflow_I[i] - aged_I[i] + new_infections[i] + new_infections_mAb[i] + aged_I[i - 1] + imported_cases
 update(I[N_age]) <- if(tt %% 360 == 0) I[N_age] - outflow_I[N_age] + sum(new_infections[26:N_age]) + sum(new_infections_mAb[26:N_age]) + aged_I[(N_age - 1)] else I[N_age] - outflow_I[N_age] + new_infections[N_age] + new_infections_mAb[N_age] + aged_I[(N_age - 1)]
 
 update(R[1]) <- if(tt %% 30 == 0) R[1] - outflow_R[1] - aged_R[1] else R[1] - outflow_R[1] - aged_R[1] + new_recoveries[1]
 update(R[2:25]) <- if(tt %% 30 == 0) R[i] - outflow_R[i] - aged_R[i] + new_recoveries[i - 1] + aged_R[i - 1] else R[i] - outflow_R[i] - aged_R[i] + new_recoveries[i] + aged_R[i - 1]
-update(R[26]) <- if(tt %% 360 == 0) R[26] - outflow_R[26] - aged_R[26] + new_recoveries[25] + aged_R[25] else R[26] - outflow_R[26] - aged_R[26] + new_recoveries[26] + aged_R[25]
+update(R[26]) <- if(tt %% 360 == 0) R[i] - outflow_R[i] - aged_R[i] + new_recoveries[i - 1] + aged_R[i - 1] else R[i] - outflow_R[i] - aged_R[i] + new_recoveries[i] + aged_R[i - 1]
 update(R[N_age]) <- if(tt %% 360 == 0) R[N_age] - outflow_R[N_age] + sum(new_recoveries[26:N_age]) + aged_R[(N_age - 1)] else R[N_age] - outflow_R[N_age] + new_recoveries[N_age] + aged_R[(N_age - 1)]
 
 update(S2[1]) <- if(tt %% 30 == 0) S2[1] - outflow_S2[1] - aged_S2[1] else S2[1] - outflow_S2[1] - aged_S2[1] + new_waned[1] + new_waned_2[1]
