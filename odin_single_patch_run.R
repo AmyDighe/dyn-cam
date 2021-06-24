@@ -51,14 +51,26 @@ time_period <- 36000
 t <- seq(0:time_period)
 
 # set importation rate for introducing infectious individuals
-importation_rate <- 0
+importation_rate <- 0.
 
 # if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 15000  
+imp_t <- 5000  
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
 
+# index for summing births for each age class
+ind1 <- rep(0,12)
+ind2 <- rep(0,12)
+
+for(y in 2:13){
+  ind1[y-1] <- 360 - ((y - 1) * 30) + 1 
+  ind2[y-1] <- 360 - ((y - 2) * 30)
+}
+
+# repeating for 4 years to cover all age classes
+ind1 <- rep(ind1, 4)
+ind2 <- rep(ind2, 4)
 
 ###############
 ## run model ##
@@ -68,12 +80,12 @@ delta <-  1
 x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
                mAb_susc = mAb_susc, mu_6m = mu_6m, mu_7_12m = mu_7_12m, mu_2nd_yr = mu_2nd_yr,
                mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
-               importation_rate = importation_rate, imp_t = imp_t, delta = delta)
+               importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
 
 out <- as.data.frame(x$run(t))
 plot(out$Ntot, type= "l")
 
-out_sum <- out[, c(2, 257, 247:253)]
+out_sum <- out[, c(2, 455, 445:451)]
 out_sum_long <- reshape2::melt(out_sum, id.var = "tt")
 ggplot(data = out_sum_long) + geom_line(aes(x = tt, y = value, color = variable))+theme_minimal()
 
