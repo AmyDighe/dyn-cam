@@ -1,7 +1,7 @@
 # removing the check on indexes now that all naked "i" have been changed to start at 1 in odin
 options(odin.no_check_naked_index = TRUE)
 sir_model <- odin::odin("odin_single_patch_model.R", verbose = FALSE, skip_cache = TRUE)
-
+library(ggplot2)
 ##########################
 ## customise parameters ##
 ##########################
