@@ -4,13 +4,11 @@
 
 # This simple stochastic model simulates MERS-CoV transmission in a single, homogenously mixed, 
 # age-stratified population of dromedary camels (with ageing)
-# In this model 1 year is aproximated as 360 days 
+# In this model 1 year is approximated as 360 days 
 # It is written using Odin
-# It can then be run from a user-edited R script "single_patch_2019_run.R"
+# It can then be run from a user-edited R script "odin_single_patch_run.R"
 
 N_age <- 49 #number of age classes
-ind1[] <- user()
-ind2[] <- user()
 
 ##############################################################################################################
 # RATES OF TRANSITION BETWEEN DISEASE STATES
@@ -103,19 +101,21 @@ p_sigma_m <- 1 - exp(-sigma_m) #prob mAbs waned
 # R = recovered and completely immune
 # S2 = immunity has waned to some degree
 # I2 = infected and infectious for the 2nd+ time
-# R2 = recovered & completely immune for a 2nd+ time (allows those infected >once to be counted - R would not)
+# R2 = recovered & completely immune for a 2nd+ time
 
-# probability of leaving each compartment for any reason (other than ageing which is dealt with later)
-p_Sm[1:N_age] <- 1 - exp(- (sigma_m + rate_infection_mAb + mu[i])) # probability of leaving Sm 
-p_S[1:N_age] <- 1 - exp(- (rate_infection + mu[i])) # probability of leaving S
-p_I[1:N_age] <- 1 - exp(- (gamma + mu[i])) # probability of leaving I
-p_R[1:N_age] <- 1 - exp(- (sigma + mu[i])) # probability of leaving R
+# probability of leaving each compartment for any reason 
+# (other than ageing which is dealt with later)
+p_Sm[1:N_age] <- 1 - exp(- (sigma_m + rate_infection_mAb + mu[i])) 
+p_S[1:N_age] <- 1 - exp(- (rate_infection + mu[i])) 
+p_I[1:N_age] <- 1 - exp(- (gamma + mu[i])) 
+p_R[1:N_age] <- 1 - exp(- (sigma + mu[i])) 
 
-p_S2[1:N_age] <- 1 - exp(- (rate_reinfection + mu[i])) # probability of leaving S2
-p_I2[1:N_age] <- 1 - exp(- (gamma + mu[i])) # probability of leaving I2
-p_R2[1:N_age] <- 1 - exp(- (sigma + mu[i])) # probability of leaving R2
+p_S2[1:N_age] <- 1 - exp(- (rate_reinfection + mu[i])) 
+p_I2[1:N_age] <- 1 - exp(- (gamma + mu[i])) 
+p_R2[1:N_age] <- 1 - exp(- (sigma + mu[i])) 
 
-# outflows (due to infection, recovery or death - ageing within a disease state is dealt with seperately)
+# outflows due to infection, recovery or death
+# (ageing within a disease state is dealt with separately)
 outflow_Sm[1:N_age] <- rbinom(Sm[i], prob = p_Sm[i])
 outflow_S[1:N_age] <- rbinom(S[i], prob = p_S[i])
 outflow_I[1:N_age] <- rbinom(I[i], prob = p_I[i])
@@ -231,7 +231,7 @@ update(S[N_age]) <- if(tt %% 30 == 0) S[N_age] - outflow_S[N_age] + aged_S[(N_ag
 #? also has imported cases going in either daily or on a set day (day set to not coincide with ageing)
 update(I[1]) <-  if (tt %% 30 == 0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] + new_infections[1] + new_infections_mAb[1]
 update(I[2:47]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i]
-update(I[48]) <- if(tt %% 30 == 0) I[48] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] + imported_cases else if(tt == imp_t) 1 + I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases else I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases
+update(I[48]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] + imported_cases else if(tt == imp_t) 1 + I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases else I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases
 update(I[N_age]) <- if(tt %% 30 == 0) I[N_age] - outflow_I[N_age] + sum(new_infections[48:N_age]) + sum(new_infections_mAb[48:N_age]) + aged_I[(N_age - 1)] else I[N_age] - outflow_I[N_age] + new_infections[N_age] + new_infections_mAb[N_age]
 
 update(R[1]) <- if(tt %% 30 == 0) R[1] - outflow_R[1] - aged_R[1] else R[1] - outflow_R[1] + new_recoveries[1]
@@ -296,6 +296,8 @@ births_det[1:360] <- rpois(births_detr[i])
 
 a_max <- 32 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
             ## (calculated in "calculating_a_max.R using exp decay mod)
+ind1[] <- user() # indexes of birth influx for demographic equilibrium solution
+ind2[] <- user()
 
 # setting initial number of camels at demographic equilibrium
 S_ini[1] <- 0

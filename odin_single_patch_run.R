@@ -2,6 +2,7 @@
 options(odin.no_check_naked_index = TRUE)
 sir_model <- odin::odin("odin_single_patch_model.R", verbose = FALSE, skip_cache = TRUE)
 library(ggplot2)
+
 ##########################
 ## customise parameters ##
 ##########################
@@ -51,10 +52,10 @@ time_period <- 36000
 t <- seq(0:time_period)
 
 # set importation rate for introducing infectious individuals
-importation_rate <- 0.
+importation_rate <- 0
 
 # if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 5000  
+imp_t <- 15001  
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
