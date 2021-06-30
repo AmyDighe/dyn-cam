@@ -124,35 +124,16 @@ outflow_S2[1:N_age] <- rbinom(S2[i], prob = p_S2[i])
 outflow_I2[1:N_age] <- rbinom(I2[i], prob = p_I2[i])
 outflow_R2[1:N_age] <- rbinom(R2[i], prob = p_R2[i])
 
-# outflows due to ageing within a disease state
-# when camels are +4 they remain in class 49 until they die
-
-# ageing occurs monthly
-# if(tt %% 30 == 0){
-#   aged_Sm[1:(N_age - 1)] <- Sm[i] - outflow_Sm[i]
-#   aged_S[1:(N_age - 1)] <- S[i] - outflow_S[i]
-#   aged_I[1:(N_age - 1)] <- I[i] - outflow_I[i]
-#   aged_R[1:(N_age - 1)] <- R[i] - outflow_R[i]
-#   aged_S2[1:(N_age - 1)] <- S2[i] - outflow_S2[i]
-#   aged_I2[1:(N_age - 1)] <- I2[i] - outflow_I2[i]
-#   aged_R2[1:(N_age - 1)] <- R2[i] - outflow_R2[i]
-# } else {
-#   aged_Sm[1:(N_age - 1)] <- 0 
-#   aged_S[1:(N_age - 1)] <- 0 
-#   aged_I[1:(N_age - 1)] <- 0 
-#   aged_R[1:(N_age - 1)] <- 0 
-#   aged_S2[1:(N_age - 1)] <- 0 
-#   aged_I2[1:(N_age - 1)] <- 0 
-#   aged_R2[1:(N_age - 1)] <- 0 
-# }
-
-aged_Sm[1:(N_age - 1)] <- if(tt %% 30 == 0) Sm[i] - outflow_Sm[i] else 0
-aged_S[1:(N_age - 1)] <- if(tt %% 30 == 0) S[i] - outflow_S[i] else 0
-aged_I[1:(N_age - 1)] <- if(tt %% 30 == 0) I[i] - outflow_I[i] else 0
-aged_R[1:(N_age - 1)] <- if(tt %% 30 == 0) R[i] - outflow_R[i] else 0
-aged_S2[1:(N_age - 1)] <- if(tt %% 30 == 0) S2[i] - outflow_S2[i] else 0
-aged_I2[1:(N_age - 1)] <- if(tt %% 30 == 0) I2[i] - outflow_I2[i] else 0
-aged_R2[1:(N_age - 1)] <- if(tt %% 30 == 0) R2[i] - outflow_R2[i] else 0
+# # outflows due to ageing within a disease state
+# # when camels are +4 they remain in class 49 until they die
+# 
+# aged_Sm[1:(N_age - 1)] <- if(tt %% 30 == 0) Sm[i] - outflow_Sm[i] else 0
+# aged_S[1:(N_age - 1)] <- if(tt %% 30 == 0) S[i] - outflow_S[i] else 0
+# aged_I[1:(N_age - 1)] <- if(tt %% 30 == 0) I[i] - outflow_I[i] else 0
+# aged_R[1:(N_age - 1)] <- if(tt %% 30 == 0) R[i] - outflow_R[i] else 0
+# aged_S2[1:(N_age - 1)] <- if(tt %% 30 == 0) S2[i] - outflow_S2[i] else 0
+# aged_I2[1:(N_age - 1)] <- if(tt %% 30 == 0) I2[i] - outflow_I2[i] else 0
+# aged_R2[1:(N_age - 1)] <- if(tt %% 30 == 0) R2[i] - outflow_R2[i] else 0
 
 
 
@@ -198,8 +179,8 @@ pi <- 3.14159 # odin doesn't have pi
 birth_rate <- N_0 * alpha * (1 + (delta * (cos(2 * pi * tt / 360)))) # N_0 is the initial population size
 new_births <- rpois(birth_rate) #per day
 
-births_protected <- 0 #rbinom(new_births, prob = seropoz_A4) # of those born, these will be protected by mAbs
-births_not_protected <- new_births #new_births - births_protected # of those born, these will NOT be protected by mAbs
+births_protected <- 0 #rbinom(new_births, prob = seropoz_A4) # protected by mAbs
+births_not_protected <- new_births #new_births - births_protected #  NOT protected by mAbs
 
 #########################
 ## importation process ##
@@ -207,48 +188,69 @@ births_not_protected <- new_births #new_births - births_protected # of those bor
 
 importation_rate <- user(0.01) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
-imp_t <- user() # a user defined time at which cases are imported if you want a one off importation event
+imp_t <- user() # a user defined time at which cases are imported
 
 ###############################################################################################################
 # EQUATIONS for movement of individuals between disease states and age classes
 # time-step = 1 day
 ###############################################################################################################
 
-## tt %% 30 == 0 identifies the timesteps where ageing occurs in the first 24 age classes.
-## when ageing occurs we need to allow ageing and change in disease states to happen in a single time-step
-## -aged_I etc. in the else clause is actually redundant as it =0 except at ageing timepoints
-## all importations (whether using rate or pulse) occur into age class 25 (2-3 years old)
+## STEP 1 - disease state changes
+## all importations (whether using rate or pulse) occur into age class 25 (~2 years old)
 
 # no need for tt %% here as no inflows
-update(Sm[1]) <- Sm[1] - outflow_Sm[1] - aged_Sm[1] + births_protected
-update(Sm[2:48]) <- Sm[i] - outflow_Sm[i] - aged_Sm[i] + aged_Sm[i-1]
-update(Sm[N_age]) <- Sm[N_age] - outflow_Sm[i] + aged_Sm[(N_age - 1)]
+new_Sm[1] <- Sm[1] - outflow_Sm[1] + births_protected
+new_Sm[2:N_age] <- Sm[i] - outflow_Sm[i]
 
-update(S[1]) <- if(tt %% 30 == 0) S[1] - outflow_S[1] - aged_S[1] + births_not_protected else S[1] - outflow_S[1] + new_waned_mAb[1] + births_not_protected 
-update(S[2:48]) <- if(tt %% 30 == 0) S[i] - outflow_S[i] - aged_S[i] + aged_S[i - 1] + new_waned_mAb[i - 1] else S[i] - outflow_S[i] + new_waned_mAb[i]
-update(S[N_age]) <- if(tt %% 30 == 0) S[N_age] - outflow_S[N_age] + aged_S[(N_age - 1)] + sum(new_waned_mAb[48:N_age]) else S[N_age] - outflow_S[N_age] + new_waned_mAb[N_age]
+new_S[1] <- S[1] - outflow_S[1] + new_waned_mAb[1] + births_not_protected 
+new_S[2:N_age] <- S[i] - outflow_S[i] + new_waned_mAb[i]
+
+#25 also has imported cases going in either daily or on a set day (day set to not coincide with ageing)
+new_I[1:24] <-  I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i]
+new_I[25] <- I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases
+new_I[26:N_age] <-  I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i]
+
+new_R[1:N_age] <- R[i] - outflow_R[i] + new_recoveries[i]
+
+new_S2[1:N_age] <- S2[i] - outflow_S2[i] + new_waned[i] + new_waned_2[i]
+
+new_I2[1:N_age] <- I2[i] - outflow_I2[i] + new_reinfections[i]
+
+new_R2[1:N_age] <- R2[i] - outflow_R2[i] + new_recoveries_2[i]
+
+
+## STEP 2 update with ageing
+
+update(Sm[1]) <- if(tt %% 30 == 0) 0 else new_Sm[1]
+update(Sm[2:48]) <- if(tt %% 30 == 0) new_Sm[i - 1] else new_Sm[i]
+update(Sm[N_age]) <- if(tt %% 30 == 0) new_Sm[i - 1] + new_Sm[i] else new_Sm[i]
+
+update(S[1]) <- if(tt %% 30 == 0) 0 else new_S[1]
+update(S[2:48]) <- if(tt %% 30 == 0) new_S[i - 1] else new_S[i]
+update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] + new_S[i] else new_S[i]
 
 #? also has imported cases going in either daily or on a set day (day set to not coincide with ageing)
-update(I[1]) <-  if (tt %% 30 == 0) I[1] - outflow_I[1] - aged_I[1] else I[1] - outflow_I[1] + new_infections[1] + new_infections_mAb[1]
-update(I[2:47]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] else I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i]
-update(I[48]) <- if(tt %% 30 == 0) I[i] - outflow_I[i] - aged_I[i] + new_infections[i - 1] + new_infections_mAb[i - 1] + aged_I[i - 1] + imported_cases else if(tt == imp_t) 1 + I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases else I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases
-update(I[N_age]) <- if(tt %% 30 == 0) I[N_age] - outflow_I[N_age] + sum(new_infections[48:N_age]) + sum(new_infections_mAb[48:N_age]) + aged_I[(N_age - 1)] else I[N_age] - outflow_I[N_age] + new_infections[N_age] + new_infections_mAb[N_age]
+update(I[1]) <-  if(tt %% 30 == 0) 0 else new_I[1]
+update(I[2:24]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
+update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] else if(tt == imp_t) 1 + new_I[i] else new_I[i]
+update(I[26:48]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
+update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] + new_I[i] else new_I[i]
 
-update(R[1]) <- if(tt %% 30 == 0) R[1] - outflow_R[1] - aged_R[1] else R[1] - outflow_R[1] + new_recoveries[1]
-update(R[2:48]) <- if(tt %% 30 == 0) R[i] - outflow_R[i] - aged_R[i] + new_recoveries[i - 1] + aged_R[i - 1] else R[i] - outflow_R[i] + new_recoveries[i]
-update(R[N_age]) <- if(tt %% 30 == 0) R[N_age] - outflow_R[N_age] + sum(new_recoveries[48:N_age]) + aged_R[(N_age - 1)] else R[N_age] - outflow_R[N_age] + new_recoveries[N_age]
+update(R[1]) <- if(tt %% 30 == 0) 0 else new_R[1]
+update(R[2:48]) <- if(tt %% 30 == 0) new_R[i - 1] else new_R[i]
+update(R[N_age]) <- if(tt %% 30 == 0) new_R[i - 1] + new_R[i] else new_R[i]
 
-update(S2[1]) <- if(tt %% 30 == 0) S2[1] - outflow_S2[1] - aged_S2[1] else S2[1] - outflow_S2[1] + new_waned[1] + new_waned_2[1]
-update(S2[2:48]) <- if(tt %% 30 == 0) S2[i] - outflow_S2[i] - aged_S2[i] + aged_S2[i - 1] + new_waned[i - 1] + new_waned_2[i - 1] else S2[i] - outflow_S2[i] + new_waned[i] + new_waned_2[i]
-update(S2[N_age]) <- if(tt %% 30 == 0) S2[N_age] - outflow_S2[N_age] + aged_S2[(N_age - 1)] + sum(new_waned[48:N_age]) + sum(new_waned_2[48:N_age]) else S2[N_age] - outflow_S2[N_age] + new_waned[N_age] + new_waned_2[N_age]
+update(S2[1]) <- if(tt %% 30 == 0) 0 else new_S2[1]
+update(S2[2:48]) <- if(tt %% 30 == 0) new_S2[i - 1] else new_S2[i]
+update(S2[N_age]) <- if(tt %% 30 == 0) new_S2[i - 1] + new_S2[i] else new_S2[i]
 
-update(I2[1]) <- if(tt %% 30 == 0) I2[1] - outflow_I2[1] - aged_I2[1] else I2[1] - outflow_I2[1] + new_reinfections[1]
-update(I2[2:48]) <- if(tt %% 30 == 0) I2[i] - outflow_I2[i] - aged_I2[i] + new_reinfections[i - 1] + aged_I2[i - 1] else I2[i] - outflow_I2[i] + new_reinfections[i]
-update(I2[N_age]) <- if(tt %% 30 == 0) I2[N_age] - outflow_I2[N_age] + sum(new_reinfections[48:N_age]) + aged_I2[(N_age - 1)] else I2[N_age] - outflow_I2[N_age] + new_reinfections[N_age]
+update(I2[1]) <- if(tt %% 30 == 0) 0 else new_I2[1]
+update(I2[2:48]) <- if(tt %% 30 == 0) new_I2[i - 1] else new_I2[i]
+update(I2[N_age]) <- if(tt %% 30 == 0) new_I2[i - 1] + new_I2[i] else new_I2[i]
 
-update(R2[1]) <- if(tt %% 30 == 0) R2[1] - outflow_R2[1] - aged_R2[1] else R2[1] - outflow_R2[1] + new_recoveries_2[1]
-update(R2[2:48]) <- if(tt %% 30 == 0) R2[i] - outflow_R2[i] - aged_R2[i] + new_recoveries_2[i - 1] + aged_R2[i - 1] else R2[i] - outflow_R2[i] + new_recoveries_2[i]
-update(R2[N_age]) <- if(tt %% 30 == 0) R2[N_age] - outflow_R2[N_age] + sum(new_recoveries_2[48:N_age]) + aged_R2[(N_age - 1)] else R2[N_age] - outflow_R2[N_age] + new_recoveries_2[N_age]
+update(R2[1]) <- if(tt %% 30 == 0) 0 else new_R2[1]
+update(R2[2:48]) <- if(tt %% 30 == 0) new_R2[i - 1] else new_R2[i]
+update(R2[N_age]) <- if(tt %% 30 == 0) new_R2[i - 1] + new_R2[i] else new_R2[i]
 
 update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning to work
 
@@ -412,13 +414,13 @@ dim(new_reinfections) <- N_age
 dim(new_recoveries_2) <- N_age
 dim(new_waned_2) <- N_age
 
-dim(aged_Sm) <- 48
-dim(aged_S) <- 48
-dim(aged_I) <- 48
-dim(aged_R) <- 48
-dim(aged_S2) <- 48
-dim(aged_I2) <- 48
-dim(aged_R2) <- 48
+# dim(aged_Sm) <- 48
+# dim(aged_S) <- 48
+# dim(aged_I) <- 48
+# dim(aged_R) <- 48
+# dim(aged_S2) <- 48
+# dim(aged_I2) <- 48
+# dim(aged_R2) <- 48
 
 dim(outflow_Sm) <- N_age
 dim(outflow_S) <- N_age
@@ -427,6 +429,15 @@ dim(outflow_R) <- N_age
 dim(outflow_S2) <- N_age
 dim(outflow_I2) <- N_age
 dim(outflow_R2) <- N_age
+
+dim(new_Sm) <- N_age
+dim(new_S) <- N_age
+dim(new_I) <- N_age
+dim(new_R) <- N_age
+dim(new_S2) <- N_age
+dim(new_I2) <- N_age
+dim(new_R2) <- N_age
+
 dim(births_det) <- 360
 dim(births_detr) <- 360
 dim(seroprevalence) <- N_age
