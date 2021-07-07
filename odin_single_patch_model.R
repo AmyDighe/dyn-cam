@@ -166,8 +166,8 @@ pi <- 3.14159 # odin doesn't have pi
 birth_rate <- N_0 * alpha * (1 + (delta * (cos(2 * pi * tt / 360)))) # N_0 is the initial population size
 new_births <- rpois(birth_rate) #per day
 
-births_protected <- 0 #rbinom(new_births, prob = seropoz_A4) # protected by mAbs
-births_not_protected <- new_births #new_births - births_protected #  NOT protected by mAbs
+births_protected <- rbinom(new_births, prob = seropoz_A4) # protected by mAbs
+births_not_protected <- new_births - births_protected #  NOT protected by mAbs
 
 #########################
 ## importation process ##
@@ -350,6 +350,7 @@ output(birthrate) <- birth_rate
 output(births) <- new_births
 output(importations) <- imported_cases
 output(yy) <- yr[12]
+#output(foi) <- beta * sum(I[1:N_age]) / sum(N[1:N_age]) # foi applying to first infections only
 
 ################################################################################################################################
 
