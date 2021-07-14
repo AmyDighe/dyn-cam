@@ -46,15 +46,13 @@ rate_reinfection <- beta_Ab * (sum(I[1:N_age]) / sum(N[1:N_age])) + beta_I2_Ab *
 ## mortality rates ##
 #####################
 # user-defined age-dependent mortality rate
-mu_6m <- user(0.0005) # death rate for 1st 6 months of life
-mu_7_12m <- user(0.0005) # death rate for 7-12th months of life
+mu_1st_yr <- user(0.0005) # death rate for 1st year of life
 mu_2nd_yr <- user(0.0005) # death rate for 2nd year of life
 mu_3rd_yr <- user(0.00025) # death rate for 3rd year of life
 mu_4th_yr <- user(0.00025) # death rate for 4th year of life
 mu_adult_over_4 <- user(0.00025) # death rate in adulthood (>4 years)
 # expand these across the age strata
-mu[1:6] <- mu_6m
-mu[7:12] <- mu_7_12m
+mu[1:12] <- mu_1st_yr
 mu[13:24] <- mu_2nd_yr
 mu[25:36] <- mu_3rd_yr
 mu[37:48] <- mu_4th_yr
@@ -323,7 +321,8 @@ output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) # total number of infectious 
 output(Rtot) <- sum(R[1:N_age]) + sum(R2[1:N_age]) # total number of recovered individuals 
 
 output(Ntot) <- sum(N[1:N_age]) # total number of individuals
-output(N_J) <- sum(Sm[1:24]) + sum(S[1:24]) + sum(S2[1:24]) + sum(I[1:24]) + sum(I2[1:24]) + sum(R[1:24]) + sum(R2[1:24])
+output(N_C) <- sum(Sm[1:12]) + sum(S[1:12]) + sum(S2[1:12]) + sum(I[1:12]) + sum(I2[1:12]) + sum(R[1:12]) + sum(R2[1:12])
+output(N_J) <- sum(Sm[13:24]) + sum(S[13:24]) + sum(S2[13:24]) + sum(I[13:24]) + sum(I2[13:24]) + sum(R[13:24]) + sum(R2[13:24])
 output(N_A) <- sum(Sm[25:N_age]) + sum(S[25:N_age]) + sum(S2[25:N_age]) + sum(I[25:N_age]) + sum(I2[25:N_age]) + sum(R[25:N_age]) + sum(R2[25:N_age])
 
 ####################
