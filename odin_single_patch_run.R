@@ -33,6 +33,58 @@ mAb_susc <- 0 # default = 0
 reduced_shed <- 1/92 # based on AUC from Alharbi 
   
 # input values for the age dependent removal rate - balance birthrate
+
+mu_1st_yr <- 0.0011 # death rate for 1st year of life = 40% removal
+mu_2nd_yr <- 0.0011 # death rate for 2nd year of life
+mu_3rd_yr <- 0.0003603 # death rate for 3rd year of life = 14% removal
+mu_4th_yr <- 0.0003603 # death rate for 4th year of life
+mu_adult_over_4 <- 0.0003603 # death rate in adulthood (>4 years)
+
+# input an initial population size
+N_0 <- 100000
+
+# input the time period that you wish to run the model for (in days)
+time_period <- 36000 
+t <- seq(0:time_period)
+
+# set importation rate for introducing infectious individuals
+importation_rate <- 0
+
+# if rather than a rate you want importation to occur on a specific day input that day here
+imp_t <- 15001  
+
+# set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
+delta <-  1 
+
+# index for summing births for each age class
+ind1 <- rep(0,12)
+ind2 <- rep(0,12)
+
+for(y in 2:13){
+  ind1[y-1] <- 360 - ((y - 1) * 30) + 1 
+  ind2[y-1] <- 360 - ((y - 2) * 30)
+}
+
+# repeating for 4 years to cover all age classes
+ind1 <- rep(ind1, 4)
+ind2 <- rep(ind2, 4)
+
+###############
+## run model ##
+###############
+
+# include any user-defined parameters as arguments here
+x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
+               mAb_susc = mAb_susc, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
+               mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
+               importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
+
+out <- as.data.frame(x$run(t))
+plot(out$Ntot, type= "l")
+
+# balancing birth rate 
+total_mortality <- mu_1st_yr * mean(out$N_C/out$Ntot) + mu_2nd_yr * mean(out$N_J/out$Ntot) + mu_3rd_yr * mean(out$N_A/out$Ntot)
+
 out_sum <- out[, c(2, 455, 445:451)]
 out_sum_long <- reshape2::melt(out_sum, id.var = "tt")
 ggplot(data = out_sum_long) + geom_line(aes(x = tt, y = value, color = variable))+theme_minimal()
