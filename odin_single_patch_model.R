@@ -1,5 +1,5 @@
 #############################
-## Single Patch Model 2019 ##
+## Single Patch Model 2021 ##
 #############################
 
 # This simple stochastic model simulates MERS-CoV transmission in a single, homogenously mixed, 
@@ -191,7 +191,7 @@ new_I[25] <- I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + i
 new_I[26:N_age] <-  I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i]
 
 new_R[1:N_age] <- R[i] - outflow_R[i] + new_recoveries[i] + new_recoveries_2[i]
-new_S2[1:N_age] <- S2[i] - outflow_S2[i] + new_waned[i] + new_waned_2[i]
+new_S2[1:N_age] <- S2[i] - outflow_S2[i] + new_waned[i]
 new_I2[1:N_age] <- I2[i] - outflow_I2[i] + new_reinfections[i]
 
 
