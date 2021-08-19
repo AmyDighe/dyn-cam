@@ -1,98 +1,143 @@
-# simple run script #
+# MSIRSIR METAPOP 2021
 
+# removing the check on indexes now that all naked "i" have been changed to start at 1 in odin
+options(odin.no_check_naked_index = TRUE)
 sir_model <- odin::odin("odin_meta_pop_model.R", verbose = FALSE, skip_cache = TRUE)
 
+##########################
+## customise parameters ##
+##########################
 
- ## input a value for average daily birth rate (default = 0.0005)
-alpha <- 0.00076 
+# input a value for birth rate (per camel per day) 
+alpha <- 0.000565 #0.0006 # 90% female * 50% reproductive age * 45.2% fecundity
 
-## input a value for transmission rate (aka effective contact rate - 
-## rate of contact between S and I and rate of transmission upon contact) (default = 0.3)
-beta <- 3/14
+# input a value for the effective contact rate (per camel per day) 
+beta <- 0.6 #default = 
 
-## input a value for recovery rate, gamma
+# input a value for the average duration of the infectious period (in days) 
+duration_infection <- 14 # default = 
+gamma <- 1/duration_infection
 
-infectious_period <- 14 ## duration of infection in days
-gamma <- 1/infectious_period
+# input a value for the average duration of complete immunity following infection (in days) 
+duration_immunity <- 90 # default = 
+sigma <- 1/duration_immunity # default = 
 
+# input a value for the average duration of partial immunity following infection (in days) 
+duration_mAb_immunity <- 360 * (3/12) # default = 
+sigma_m <- 1/duration_mAb_immunity # default = 
 
-## input a value for R --> S2, sigma
-sigma <- 1/180
+# input a value between 0 and 1 for susceptibility experienced by individuals with mAbs and Abs
+## 0 would mean mAbs/Abs afford complete protection from MERS (default)
+## 1 would mean mAbs/Abs afford no protection at all
+Ab_susc <- 1 # default = 
+mAb_susc <- 0 # default = 0
 
+# input value for the proportion of baseline naive infectiousness
+# seen in reinfected animals
+reduced_shed <- 1/92 #1/92 # based on AUC from shedding in Alharbi 
 
-## input a value between 0 and 1 for susceptibility experienced by individuals with maternal antibodies 
-## 0 would mean mAbs afford complete protection from MERS (default)
-## 1 would mean mAbs afford no protection at all
-Ab_susc <- 0.25
-mAb_susc <- 0.25
+# input values for the age dependent removal rate - balance birthrate
 
-## input values for the age dependent death rate
+mu_1st_yr <- 0.0011 # death rate for 1st year of life = 40% removal
+mu_2nd_yr <- 0.0011 # death rate for 2nd year of life
+mu_3rd_yr <- 0.0003603 # death rate for 3rd year of life = 14% removal
+mu_4th_yr <- 0.0003603 # death rate for 4th year of life
+mu_adult_over_4 <- 0.0003603 # death rate in adulthood (>4 years)
 
-mu_6m <- 0.001 # death rate for 1st month of life
-mu_2y <- 0.001 # death rate for the rest of the 1st 2 yrs of life
-mu_adult <- 0.0005 # death rate in adulthood (2 yrs +)
+# input an initial population size
+N_0 <- 10000
 
-## input an initial population size
-
-N_0 <- 1000
-
-## input the time period that you wish to run the model for
-time_period <- 4700 
+# input the time period that you wish to run the model for (in days)
+time_period <- 7352
 t <- seq(0:time_period)
 
+# set importation rate for introducing infectious individuals
+importation_rate <- 0
 
-## input a strength of seasonality of births (1 = max, 0 = no seasonality)
+# if rather than a rate you want importation to occur on a specific day input that day here
+imp_t <- 271  
 
-delta = 1
+# set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
+delta <-  1 
 
-## run model
+# index for summing births for each age class
+ind1 <- rep(0,12)
+ind2 <- rep(0,12)
 
-x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, mAb_susc = mAb_susc, 
-               mu_6m = mu_6m, mu_2y = mu_2y, mu_adult = mu_adult, N_0 = N_0, delta = delta)
+for(y in 2:13){
+  ind1[y-1] <- 360 - ((y - 1) * 30) + 1 
+  ind2[y-1] <- 360 - ((y - 2) * 30)
+}
 
+# repeating for 4 years to cover all age classes
+ind1 <- rep(ind1, 4)
+ind2 <- rep(ind2, 4)
+
+# metapop specific
+connectivity <- 0.05
+
+###############
+## run model ##
+###############
+
+# include any user-defined parameters as arguments here
+x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma,
+               sigma_m = sigma_m,
+               Ab_susc = Ab_susc, mAb_susc = mAb_susc, reduced_shed = reduced_shed, 
+               mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,mu_3rd_yr = mu_3rd_yr, 
+               mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, 
+               N_0 = N_0, importation_rate = importation_rate, 
+               imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2, 
+               connectivity = connectivity)
+
+# for a single run
 out <- as.data.frame(x$run(t))
+#saveRDS(file = "out_metapop.rds", out)
+out <- readRDS("out_metapop.rds")
+plot(out$Itot, type = "l")
+foi <- (beta * mean((out$I_1/out$Ntot)[2000:(2000 + (360*7))])) + (beta * reduced_shed * mean((out$I_2/out$Ntot)[2000:(2000 + (360*7))]))
+print(foi)
 
-## run multiple iterations of the model
+# subset to include total I per patch
+out_I_patch <- out[2000:7352,c(2:27)]
+I_patch_long <- gather(data = out_I_patch, "patch", "I", -tt)
 
-x_res <- as.data.frame(replicate(100, x$run(0:4700)[,c(3:27, 28:52, 53:77, 4278:4302, 4335, 4337, 4339, 4342)]))
+p3 <- ggplot(data = I_patch_long)+
+  geom_line(aes(x = tt, y = I, col = patch))
 
-par(mgp = c(3, 0.5, 0), las = 1, mar = c(2, 2, 0.7, 0.5), oma = c(2,2,2,2))
-layout(matrix(c(1:25, rep(26,15)), byrow = TRUE, ncol = 5, nrow = 8))
+cowplot::save_plot(p3, filename = "metapop_ts.png")
 
-library(scales)
-sir_col <- c("aquamarine2", "#cc0044", "#8c8cd9", "black", "pink", "gold", "dimgrey")
+# grid coordinate
+grid_x <- rep(1:5, times = 5)
+grid_y <- rep(1:5, each = 5)
+I_patch_long$grid_x <- rep(grid_x, each = dim(out_I_patch)[1])
+I_patch_long$grid_y <- rep(grid_y, each = dim(out_I_patch)[1])
 
-for(i in 1:25){
-matplot(x_res[,c(seq(from=i,to = i+(104*99), by=104),seq(from=i + 25,to = i+25+(104*99), by=104),
-                 seq(from=i +50,to = i+50+(104*99), by=104),seq(from=77,to = i+75+(104*99), by=104))], xlab = "Time (years)", ylab = "",
-        type = "l", col = c(rep(alpha(sir_col[1], 0.1), 100),rep(alpha(sir_col[2], 0.1), 100),rep(alpha(sir_col[3], 0.1), 100),rep(alpha(sir_col[4], 0.1), 100)),
-        lwd = 3, lty = 1, xaxt = "n", las = 1)
-}
+a <- ggplot(data = I_patch_long)+
+  geom_tile(aes(x = grid_x, y = grid_y, fill = I))+
+  transition_time(tt)
+animate(a, nframes = 1000)
+anim_save(filename = "endemic_circulation.gif")
 
-matplot(x_res[,c(seq(from = 101, to = 101+(104*99), by = 104), seq(from = 102, to = 102+(104*99), by = 104),
-                 seq(from = 103, to = 103+(104*99), by = 104),seq(from = 104, to = 104+(104*99), by = 104))], xlab = "Time (years)", ylab = "",
-type = "l", col = c(rep(alpha(sir_col[1], 0.1), 100),rep(alpha(sir_col[2], 0.1), 100),rep(alpha(sir_col[3], 0.1), 100),rep(alpha(sir_col[4], 0.1), 100)),
-lwd = 3, lty = 1, xaxt = "n", las = 1)
+# looking at inititial spike
+out_I_patch <- out[150:500,c(2:27)]
+I_patch_long <- gather(data = out_I_patch, "patch", "I", -tt)
 
-colMax <- function(data) sapply(data, max, na.rm = TRUE)
+ggplot(data = I_patch_long)+
+  geom_line(aes(x = tt, y = I, col = patch))
 
-infy <- c(1,104*(seq(from = 1, to = 99, by = 1)))
-infy_1 <- 26:50
-comby <- expand.grid(infy, infy_1)
-inf_indexes <- rowSums(comby)
-meta_p_infectious <- x_res[,inf_indexes]
-meta_p_total_inf <- x_res[,seq(from = 102, to = 102+(104*99), by = 104)]
-fades <- colSums(meta_p_total_inf[,]<1) >0 ##the number of runs that dipped to zero ie. faded out
-no_starts <- (colMax(meta_p_total_inf[1:360,])) <8 ##the number of runs that did not see an epidemic (never more than 1 infectious individuals in the first year)
+# grid coordinate
+grid_x <- rep(1:5, times = 5)
+grid_y <- rep(1:5, each = 5)
+I_patch_long$grid_x <- rep(grid_x, each = dim(out_I_patch)[1])
+I_patch_long$grid_y <- rep(grid_y, each = dim(out_I_patch)[1])
 
-perc_of_epis_that_persist <- 100 - (100*(sum(fades) - sum(no_starts))/(100-(sum(no_starts))))
+a2 <- ggplot(data = I_patch_long)+
+  geom_tile(aes(x = grid_x, y = grid_y, fill = I))+
+  transition_time(tt)
 
-matplot(meta_p_total_inf[1:50,], type = "l", lty=1, lwd=2)
-
-for(i in 1:25){
-matplot(x_res[1:10,seq(from=i + 25,to = i+25+(104*99), by=104)], type = "l", lty =1, col = alpha(sir_col[2], 0.2), lwd = 2)
-#legend("topleft", legend = c("S", "I", "R", "N"), col = sir_col[1:4], lwd = 2)  
-}
+animate(a2, nframes = 250)
+anim_save(filename = "initial_spike.gif")
 
 
 
