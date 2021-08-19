@@ -2,6 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+data/.rds
 stale/
 figs/
 results/
