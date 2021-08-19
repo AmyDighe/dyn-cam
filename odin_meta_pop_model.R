@@ -19,59 +19,68 @@ beta_I2_Ab <- Ab_susc * reduced_shed * beta
 
 connectivity <- 0.05 ##conection strength between patches (0<x<1)
 
-## FOI from first-time infections in other patches
-FOI[1] <- ((sum(I[1:N_age,2])/N[2]) + (sum(I[1:N_age,6])/N[6]))
-FOI[2] <- ((sum(I[1:N_age,1])/N[1]) + (sum(I[1:N_age,3])/N[3]) + (sum(I[1:N_age,7])/N[7]))
-FOI[3] <- ((sum(I[1:N_age,2])/N[2]) + (sum(I[1:N_age,4])/N[4]) + (sum(I[1:N_age,8])/N[8]))
-FOI[4] <- ((sum(I[1:N_age,3])/N[3]) + (sum(I[1:N_age,5])/N[5]) + (sum(I[1:N_age,9])/N[9]))
-FOI[5] <- ((sum(I[1:N_age,4])/N[4]) + (sum(I[1:N_age,10])/N[10]))
-FOI[6] <- ((sum(I[1:N_age,1])/N[1]) + (sum(I[1:N_age,7])/N[7]) + (sum(I[1:N_age,11])/N[11]))
-FOI[7] <- ((sum(I[1:N_age,2])/N[2]) + (sum(I[1:N_age,6])/N[6]) + (sum(I[1:N_age,8])/N[8]) + (sum(I[1:N_age, 12])/N[12]))
-FOI[8] <- ((sum(I[1:N_age,3])/N[3]) + (sum(I[1:N_age,7])/N[7]) + (sum(I[1:N_age,9])/N[9]) + (sum(I[1:N_age, 13])/N[13]))
-FOI[9] <- ((sum(I[1:N_age,4])/N[4]) + (sum(I[1:N_age,8])/N[8]) + (sum(I[1:N_age,10])/N[10]) + (sum(I[1:N_age, 14])/N[14]))
-FOI[10] <- ((sum(I[1:N_age,5])/N[5]) + (sum(I[1:N_age,9])/N[9]) + (sum(I[1:N_age,15])/N[15]))
-FOI[11] <- ((sum(I[1:N_age,6])/N[6]) + (sum(I[1:N_age,12])/N[12]) + (sum(I[1:N_age,16])/N[16]))
-FOI[12] <- ((sum(I[1:N_age,7])/N[7]) + (sum(I[1:N_age,11])/N[11]) + (sum(I[1:N_age,13])/N[13]) + (sum(I[1:N_age, 17])/N[17]))
-FOI[13] <- ((sum(I[1:N_age,8])/N[8]) + (sum(I[1:N_age,12])/N[12]) + (sum(I[1:N_age,14])/N[14]) + (sum(I[1:N_age, 18])/N[18]))
-FOI[14] <- ((sum(I[1:N_age,9])/N[9]) + (sum(I[1:N_age,13])/N[13]) + (sum(I[1:N_age,15])/N[15]) + (sum(I[1:N_age, 19])/N[19]))
-FOI[15] <- ((sum(I[1:N_age,10])/N[10]) + (sum(I[1:N_age,14])/N[14]) + (sum(I[1:N_age,20])/N[20]))
-FOI[16] <- ((sum(I[1:N_age,11])/N[11]) + (sum(I[1:N_age,17])/N[17]) + (sum(I[1:N_age,21])/N[21]))
-FOI[17] <- ((sum(I[1:N_age,12])/N[12]) + (sum(I[1:N_age,16])/N[16]) + (sum(I[1:N_age,18])/N[18]) + (sum(I[1:N_age, 22])/N[22]))
-FOI[18] <- ((sum(I[1:N_age,13])/N[13]) + (sum(I[1:N_age,17])/N[17]) + (sum(I[1:N_age,19])/N[19]) + (sum(I[1:N_age, 23])/N[23]))
-FOI[19] <- ((sum(I[1:N_age,14])/N[14]) + (sum(I[1:N_age,18])/N[18]) + (sum(I[1:N_age,20])/N[20]) + (sum(I[1:N_age, 24])/N[24]))
-FOI[20] <- ((sum(I[1:N_age,15])/N[15]) + (sum(I[1:N_age,19])/N[19]) + (sum(I[1:N_age,25])/N[25]))
-FOI[21] <- ((sum(I[1:N_age,16])/N[16]) + (sum(I[1:N_age,22])/N[22]))
-FOI[22] <- ((sum(I[1:N_age,17])/N[17]) + (sum(I[1:N_age,21])/N[21]) + (sum(I[1:N_age,23])/N[23]))
-FOI[23] <- ((sum(I[1:N_age,18])/N[18]) + (sum(I[1:N_age,22])/N[22]) + (sum(I[1:N_age,24])/N[24]))
-FOI[24] <- ((sum(I[1:N_age,19])/N[19]) + (sum(I[1:N_age,23])/N[23]) + (sum(I[1:N_age,25])/N[25]))
-FOI[25] <- ((sum(I[1:N_age,20])/N[20]) + (sum(I[1:N_age,24])/N[24]))
 
-## FOI from second-plus-time infections in other patches
-FOI_2[1] <- ((sum(I2[1:N_age,2])/N[2]) + (sum(I2[1:N_age,6])/N[6]))
-FOI_2[2] <- ((sum(I2[1:N_age,1])/N[1]) + (sum(I2[1:N_age,3])/N[3]) + (sum(I2[1:N_age,7])/N[7]))
-FOI_2[3] <- ((sum(I2[1:N_age,2])/N[2]) + (sum(I2[1:N_age,4])/N[4]) + (sum(I2[1:N_age,8])/N[8]))
-FOI_2[4] <- ((sum(I2[1:N_age,3])/N[3]) + (sum(I2[1:N_age,5])/N[5]) + (sum(I2[1:N_age,9])/N[9]))
-FOI_2[5] <- ((sum(I2[1:N_age,1])/N[1]) + (sum(I2[1:N_age,3])/N[3]) + (sum(I2[1:N_age,7])/N[7]))
-FOI_2[6] <- ((sum(I2[1:N_age,4])/N[4]) + (sum(I2[1:N_age,10])/N[10]))
-FOI_2[7] <- ((sum(I2[1:N_age,1])/N[1]) + (sum(I2[1:N_age,7])/N[7]) + (sum(I2[1:N_age,11])/N[11]))
-FOI_2[8] <- ((sum(I2[1:N_age,2])/N[2]) + (sum(I2[1:N_age,6])/N[6]) + (sum(I2[1:N_age,8])/N[8]) + (sum(I2[1:N_age, 12])/N[12]))
-FOI_2[9] <- ((sum(I2[1:N_age,3])/N[3]) + (sum(I2[1:N_age,7])/N[7]) + (sum(I2[1:N_age,9])/N[9]) + (sum(I2[1:N_age, 13])/N[13]))
-FOI_2[10] <- ((sum(I2[1:N_age,4])/N[4]) + (sum(I2[1:N_age,8])/N[8]) + (sum(I2[1:N_age,10])/N[10]) + (sum(I2[1:N_age, 14])/N[14]))
-FOI_2[11] <- ((sum(I2[1:N_age,5])/N[5]) + (sum(I2[1:N_age,9])/N[9]) + (sum(I2[1:N_age,15])/N[15]))
-FOI_2[12] <- ((sum(I2[1:N_age,6])/N[6]) + (sum(I2[1:N_age,12])/N[12]) + (sum(I2[1:N_age,16])/N[16]))
-FOI_2[13] <- ((sum(I2[1:N_age,7])/N[7]) + (sum(I2[1:N_age,11])/N[11]) + (sum(I2[1:N_age,13])/N[13]) + (sum(I2[1:N_age, 17])/N[17]))
-FOI_2[14] <- ((sum(I2[1:N_age,8])/N[8]) + (sum(I2[1:N_age,12])/N[12]) + (sum(I2[1:N_age,14])/N[14]) + (sum(I2[1:N_age, 18])/N[18]))
-FOI_2[15] <- ((sum(I2[1:N_age,9])/N[9]) + (sum(I2[1:N_age,13])/N[13]) + (sum(I2[1:N_age,15])/N[15]) + (sum(I2[1:N_age, 19])/N[19]))
-FOI_2[16] <- ((sum(I2[1:N_age,10])/N[10]) + (sum(I2[1:N_age,14])/N[14]) + (sum(I2[1:N_age,20])/N[20]))
-FOI_2[17] <- ((sum(I2[1:N_age,11])/N[11]) + (sum(I2[1:N_age,17])/N[17]) + (sum(I2[1:N_age,21])/N[21]))
-FOI_2[18] <- ((sum(I2[1:N_age,12])/N[12]) + (sum(I2[1:N_age,16])/N[16]) + (sum(I2[1:N_age,18])/N[18]) + (sum(I2[1:N_age, 22])/N[22]))
-FOI_2[19] <- ((sum(I2[1:N_age,13])/N[13]) + (sum(I2[1:N_age,17])/N[17]) + (sum(I2[1:N_age,19])/N[19]) + (sum(I2[1:N_age, 23])/N[23]))
-FOI_2[20] <- ((sum(I2[1:N_age,14])/N[14]) + (sum(I2[1:N_age,18])/N[18]) + (sum(I2[1:N_age,20])/N[20]) + (sum(I2[1:N_age, 24])/N[24]))
-FOI_2[21] <- ((sum(I2[1:N_age,15])/N[15]) + (sum(I2[1:N_age,19])/N[19]) + (sum(I2[1:N_age,25])/N[25]))
-FOI_2[22] <- ((sum(I2[1:N_age,16])/N[16]) + (sum(I2[1:N_age,22])/N[22]))
-FOI_2[23] <- ((sum(I2[1:N_age,17])/N[17]) + (sum(I2[1:N_age,21])/N[21]) + (sum(I2[1:N_age,23])/N[23]))
-FOI_2[24] <- ((sum(I2[1:N_age,18])/N[18]) + (sum(I2[1:N_age,22])/N[22]) + (sum(I2[1:N_age,24])/N[24]))
-FOI_2[25] <- ((sum(I2[1:N_age,20])/N[20]) + (sum(I2[1:N_age,24])/N[24]))
+# grid connections 5 x 5
+### grid corners
+# contribution of infections in neighbouring patches
+FOI[1] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) +
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI[5] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI[21] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+FOI[25] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+# contribution of RE-infections in neighbouring patches
+FOI_2[1] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) +
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI_2[5] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI_2[21] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+FOI_2[25] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+
+### grid middle
+# contribution of infections in neighbouring patches
+FOI[c(7:9, 12:14, 17:19)] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)])) + 
+  (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+# contribution of RE-infections in neighbouring patches
+FOI_2[c(7:9, 12:14, 17:19)] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)])) + 
+  (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+
+### grid edges
+# contributions of infections in neighbouring patches
+FOI[2:4] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI[22:24] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+FOI[c(6,11,16)] <- (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
+  (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI[c(10,15,20)] <- (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
+  (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+# contribution of RE-infections in neighbouring patches
+FOI_2[2:4] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI_2[22:24] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
+  (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
+FOI_2[c(6,11,16)] <- (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
+  (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+FOI_2[c(10,15,20)] <- (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
+  (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
+  (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
+
 
 
 rate_infection[1:n_patch] <- beta * (sum(I[1:N_age,i]) / N[i])  + 

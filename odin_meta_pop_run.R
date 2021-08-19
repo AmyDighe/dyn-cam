@@ -1,9 +1,9 @@
 # simple run script #
 
-sir_model <- odin::odin("odin_meta_pop_2019.R", verbose = FALSE, skip_cache = TRUE)
+sir_model <- odin::odin("odin_meta_pop_model.R", verbose = FALSE, skip_cache = TRUE)
 
 
-## input a value for average daily birth rate (default = 0.0005)
+ ## input a value for average daily birth rate (default = 0.0005)
 alpha <- 0.00076 
 
 ## input a value for transmission rate (aka effective contact rate - 
