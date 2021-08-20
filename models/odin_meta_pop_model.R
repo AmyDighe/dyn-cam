@@ -103,69 +103,6 @@ external_I2[23] <- (sum(I2[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I2[1:N_age,22
 external_I2[24] <- (sum(I2[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I2[1:N_age,23])/sum(N[1:N_age,23])) + (sum(I2[1:N_age,25])/sum(N[1:N_age,25]))
 external_I2[25] <- (sum(I2[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I2[1:N_age,24])/sum(N[1:N_age,24]))
 
-# contribution of infections in neighbouring patches
-# external_I1[1] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) +
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# 
-# 
-# external_I1[5] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I1[21] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# external_I1[25] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# 
-# # contribution of RE-infections in neighbouring patches
-# external_I2[1] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) +
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I2[5] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I2[21] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# external_I2[25] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# 
-# ### grid middle
-# # contribution of infections in neighbouring patches
-# external_I1[c(7:9, 12:14, 17:19)] <- (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)])) + 
-#   (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# # contribution of RE-infections in neighbouring patches
-# external_I2[c(7:9, 12:14, 17:19)] <- (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)])) + 
-#   (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# 
-# ### grid edges
-# # contributions of infections in neighbouring patches
-# external_I1[2:4] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I1[22:24] <- (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# external_I1[c(6,11,16)] <- (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
-#   (sum(I[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I1[c(10,15,20)] <- (sum(I[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
-#   (sum(I[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# # contribution of RE-infections in neighbouring patches
-# external_I2[2:4] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I2[22:24] <- (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) +
-#   (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)]))
-# external_I2[c(6,11,16)] <- (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
-#   (sum(I2[1:N_age, (i + 1)]) / sum(N[1:N_age, (i + 1)])) + 
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-# external_I2[c(10,15,20)] <- (sum(I2[1:N_age, (i - 5)]) / sum(N[1:N_age, (i - 5)])) +
-#   (sum(I2[1:N_age, (i - 1)]) / sum(N[1:N_age, (i - 1)])) + 
-#   (sum(I2[1:N_age, (i + 5)]) / sum(N[1:N_age, (i + 5)]))
-
-
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
 rate_infection[1:N_patch] <- beta * (sum(I[1:N_age, i]) / sum(N[1:N_age, i]))  + 
@@ -351,7 +288,7 @@ update(S[N_age, ]) <- if(tt %% 30 == 0) new_S[i-1,j] + new_S[i,j] else new_S[i,j
 
 update(I[1, ]) <-  if(tt %% 30 == 0) 0 else new_I[1,j]
 update(I[2:24, ]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
-update(I[25, 13]) <- if(tt %% 30 == 0) new_I[i-1,j] else if(tt == imp_t) 1 + new_I[i,j] else new_I[i,j]
+update(I[25, 13]) <- if(tt %% 30 == 0) new_I[i-1,j] else if(tt == imp_t) 5 + new_I[i,j] else new_I[i,j]
 update(I[25, 1:12]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
 update(I[25, 14:N_patch]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
 update(I[26:48, ]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]

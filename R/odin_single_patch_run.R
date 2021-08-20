@@ -1,7 +1,6 @@
 # removing the check on indexes now that all naked "i" have been changed to start at 1 in odin
 options(odin.no_check_naked_index = TRUE)
-sir_model <- odin::odin("odin_single_patch_model.R", verbose = FALSE, skip_cache = TRUE)
-library(ggplot2)
+sir_model <- odin::odin("models/odin_single_patch_model.R", verbose = FALSE, skip_cache = TRUE)
 
 ##########################
 ## customise parameters ##
@@ -51,7 +50,7 @@ t <- seq(0:time_period)
 importation_rate <- 0
 
 # if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 15001  
+imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
@@ -74,13 +73,14 @@ ind2 <- rep(ind2, 4)
 ###############
 
 # include any user-defined parameters as arguments here
-x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
+x <- sir_model(alpha = alpha, beta = 0.3, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
                mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
                mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
 
 out <- as.data.frame(x$run(t))
-plot(out$Ntot, type= "l")
+plot(out$Itot[1:(360*5)], type= "l")
+abline(v = imp_t)
 
 # balancing birth rate 
 total_mortality <- mu_1st_yr * mean(out$N_C/out$Ntot) + mu_2nd_yr * mean(out$N_J/out$Ntot) + mu_3rd_yr * mean(out$N_A/out$Ntot)
