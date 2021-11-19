@@ -59,7 +59,7 @@ ind2 <- rep(ind2, 4)
 
 spike_persists <- vector(length = dim(par_grid)[1])
 
-for(i in 1:2){
+for(i in 1:(dim(par_grid)[1])){
 # set import time(s)
   imp_t <-par_grid$import_time[i] + (360 * c(rep(0,5)))
  # include any user-defined parameters as arguments here
