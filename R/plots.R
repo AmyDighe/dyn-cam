@@ -4,6 +4,8 @@ persist <- readRDS("persist_15.rds")
 period <- readRDS("period.rds")
 ACF_examp <- readRDS("ACF_example.rds")
 
+persist <- readRDS("results/spike_persists.rds")
+
 par_grid$persistence <- persist
 par_grid$period <- period
 par_grid$beta <- as.character(par_grid$beta)
