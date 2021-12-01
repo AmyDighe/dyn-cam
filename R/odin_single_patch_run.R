@@ -29,7 +29,7 @@ mAb_susc <- 0 # default = 0
 
 # input value for the proportion of baseline naive infectiousness
 # seen in reinfected animals
-reduced_shed <- 1/10 #1/92 # based on AUC from shedding in Alharbi 
+reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
   
 # input values for the age dependent removal rate - balance birthrate
 
@@ -40,10 +40,10 @@ mu_4th_yr <- 0.0003603 # death rate for 4th year of life
 mu_adult_over_4 <- 0.0003603 # death rate in adulthood (>4 years)
 
 # input an initial population size
-N_0 <- 100000
+N_0 <- 1000000
 
 # input the time period that you wish to run the model for (in days)
-time_period <- 36000 
+time_period <- 9000 
 t <- seq(0:time_period)
 
 # set importation rate for introducing infectious individuals
@@ -71,14 +71,16 @@ ind2 <- rep(ind2, 4)
 ###############
 ## run model ##
 ###############
-
+tic("single_patch")
 # include any user-defined parameters as arguments here
-x <- sir_model(alpha = alpha, beta = 0.3, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
+x <- sir_model(alpha = alpha, beta = 0.6, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
                mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
                mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
-
+#out <- as.data.frame(replicate(100, x$run(t)[, 403]))
 out <- as.data.frame(x$run(t))
+toc()
+
 plot(out$Itot[1:(360*5)], type= "l")
 abline(v = imp_t)
 

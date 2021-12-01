@@ -1,6 +1,6 @@
-################################
-## Meta-population Model 2021 ##
-################################
+####################################################
+## Meta-population Model 2021 - odin.dust version ##
+####################################################
 
 # This simple stochastic model simulates MERS-CoV transmission in a structured population,
 # where the total population is split intoa grid of 25 equally sized sub populations.
@@ -377,42 +377,33 @@ S_ini_p[1:N_age, ] <- round((S_ini[i,j] / sum(S_ini[1:N_age,j])) * N_0)
 #########################################
 
 # total number of individuals still protected by maternal immunity
-output(M) <- sum(Sm[1:N_age, ])
-
-output(S_1) <- sum(S[1:N_age, ]) # susceptible individuals never infected
-output(I_1) <- sum(I[1:N_age, ]) # individuals infectious for the 1st time
-output(R_1) <- sum(R[1:N_age, ]) # individuals recovered from a 1st infection
-output(S_2) <- sum(S2[1:N_age, ]) # susceptible individuals whose immunity has waned
-output(I_2) <- sum(I2[1:N_age, ]) # individuals infectious for the 2nd+ time
-
-output(Stot) <- sum(S[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(Sm[1:N_age, ]) # total number of susceptible individuals
-output(Itot) <- sum(I[1:N_age, ]) + sum(I2[1:N_age, ]) # total number of infectious individuals
-output(Rtot) <- sum(R[1:N_age, ]) 
-
-output(Ntot) <- sum(N[1:N_age, ]) # total number of individuals
-output(N_C) <- sum(Sm[1:12, ]) + sum(S[1:12, ]) + sum(S2[1:12, ]) + sum(I[1:12, ]) + sum(I2[1:12, ]) + sum(R[1:12, ])
-output(N_J) <- sum(Sm[13:24, ]) + sum(S[13:24, ]) + sum(S2[13:24, ]) + sum(I[13:24, ]) + sum(I2[13:24, ]) + sum(R[13:24, ])
-output(N_A) <- sum(Sm[25:N_age, ]) + sum(S[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ])
+# output(M) <- sum(Sm[1:N_age, ])
+# 
+# output(S_1) <- sum(S[1:N_age, ]) # susceptible individuals never infected
+# output(I_1) <- sum(I[1:N_age, ]) # individuals infectious for the 1st time
+# output(R_1) <- sum(R[1:N_age, ]) # individuals recovered from a 1st infection
+# output(S_2) <- sum(S2[1:N_age, ]) # susceptible individuals whose immunity has waned
+# output(I_2) <- sum(I2[1:N_age, ]) # individuals infectious for the 2nd+ time
+# 
+# output(Stot) <- sum(S[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(Sm[1:N_age, ]) # total number of susceptible individuals
+# output(Itot) <- sum(I[1:N_age, ]) + sum(I2[1:N_age, ]) # total number of infectious individuals
+# output(Rtot) <- sum(R[1:N_age, ]) 
+# 
+# output(Ntot) <- sum(N[1:N_age, ]) # total number of individuals
 
 ####################
 ## seroprevalence ##
 ####################
-output(seropoz_A) <- 100 * (sum(Sm[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))/(sum(Sm[25:N_age, ]) + sum(S[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))
-output(seropoz_J) <- 100 * (sum(Sm[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ])) / (sum(Sm[1:24, ]) + sum(S[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ]))
-output(seropz_tot) <- 100 * (sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))/(sum(Sm[1:N_age, ]) + sum(S[1:N_age, ]) + sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))
+# output(seropoz_A) <- 100 * (sum(Sm[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))/(sum(Sm[25:N_age, ]) + sum(S[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))
+# output(seropoz_J) <- 100 * (sum(Sm[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ])) / (sum(Sm[1:24, ]) + sum(S[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ]))
+# output(seropz_tot) <- 100 * (sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))/(sum(Sm[1:N_age, ]) + sum(S[1:N_age, ]) + sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))
 
 ############################
 ## age at first infection ##
 ############################
-output(incidence_new_inf) <- sum(new_infections[1:N_age, ])
-output(total_incidence) <- (sum(new_infections[1:N_age, ]) + sum(new_reinfections[1:N_age, ]))
+# output(incidence_new_inf) <- sum(new_infections[1:N_age, ])
+# output(total_incidence) <- (sum(new_infections[1:N_age, ]) + sum(new_reinfections[1:N_age, ]))
 
-###########
-## other ##
-###########
-output(birthrate) <- birth_rate
-output(births) <- sum(new_births[])
-output(importations) <- imported_cases
 
 ################################################################################################################################
 

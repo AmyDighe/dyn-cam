@@ -3,7 +3,7 @@
 ################################
 
 # This simple stochastic model simulates MERS-CoV transmission in a structured population,
-# where the total population is split intoa grid of 25 equally sized sub populations.
+# where the total population is split intoa grid of 4 equally sized sub populations.
 # sub populations can contribute to the foi in their neighbouring patches
 # age-stratified population of dromedary camels (with ageing)
 # In this model 1 year is approximated as 360 days 
@@ -11,7 +11,7 @@
 # It can then be run from a user-edited R script "odin_meta_population_run.R"
 
 N_age <- 49 #number of age classes
-N_patch <- 25 #number of subpopulations
+N_patch <- 4 #number of subpopulations
 
 ##############################################################################################################
 # RATES OF TRANSITION BETWEEN DISEASE STATES
@@ -48,58 +48,16 @@ connectivity <- user(0.05) ##connection strength between patches (0<x<1)
 # grid connections 5 x 5
 # contribution of infections in neighbouring patches
 ## external_I1 from first-time infections in other patches
-external_I1[1] <- (sum(I[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I[1:N_age,6])/sum(N[1:N_age,6]))
-external_I1[2] <- (sum(I[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I[1:N_age,7])/sum(N[1:N_age,7]))
-external_I1[3] <- (sum(I[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I[1:N_age,8])/sum(N[1:N_age,8]))
-external_I1[4] <- (sum(I[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I[1:N_age,5])/sum(N[1:N_age,5])) + (sum(I[1:N_age,9])/sum(N[1:N_age,9]))
-external_I1[5] <- (sum(I[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I[1:N_age,10])/sum(N[1:N_age,10]))
-external_I1[6] <- (sum(I[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I[1:N_age,11])/sum(N[1:N_age,11]))
-external_I1[7] <- (sum(I[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I[1:N_age,6])/sum(N[1:N_age,6])) + (sum(I[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I[1:N_age, 12])/sum(N[1:N_age,12]))
-external_I1[8] <- (sum(I[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I[1:N_age, 13])/sum(N[1:N_age,13]))
-external_I1[9] <- (sum(I[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I[1:N_age,10])/sum(N[1:N_age,10])) + (sum(I[1:N_age, 14])/sum(N[1:N_age,14]))
-external_I1[10] <- (sum(I[1:N_age,5])/sum(N[1:N_age,5])) + (sum(I[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I[1:N_age,15])/sum(N[1:N_age,15]))
-external_I1[11] <- (sum(I[1:N_age,6])/sum(N[1:N_age,6])) + (sum(I[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I[1:N_age,16])/sum(N[1:N_age,16]))
-external_I1[12] <- (sum(I[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I[1:N_age,11])/sum(N[1:N_age,11])) + (sum(I[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I[1:N_age, 17])/sum(N[1:N_age,17]))
-external_I1[13] <- (sum(I[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I[1:N_age, 18])/sum(N[1:N_age,18]))
-external_I1[14] <- (sum(I[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I[1:N_age,15])/sum(N[1:N_age,15])) + (sum(I[1:N_age, 19])/sum(N[1:N_age,19]))
-external_I1[15] <- (sum(I[1:N_age,10])/sum(N[1:N_age,10])) + (sum(I[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I[1:N_age,20])/sum(N[1:N_age,20]))
-external_I1[16] <- (sum(I[1:N_age,11])/sum(N[1:N_age,11])) + (sum(I[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I[1:N_age,21])/sum(N[1:N_age,21]))
-external_I1[17] <- (sum(I[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I[1:N_age,16])/sum(N[1:N_age,16])) + (sum(I[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I[1:N_age, 22])/sum(N[1:N_age,22]))
-external_I1[18] <- (sum(I[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I[1:N_age, 23])/sum(N[1:N_age,23]))
-external_I1[19] <- (sum(I[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I[1:N_age, 24])/sum(N[1:N_age,24]))
-external_I1[20] <- (sum(I[1:N_age,15])/sum(N[1:N_age,15])) + (sum(I[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I[1:N_age,25])/sum(N[1:N_age,25]))
-external_I1[21] <- (sum(I[1:N_age,16])/sum(N[1:N_age,16])) + (sum(I[1:N_age,22])/sum(N[1:N_age,22]))
-external_I1[22] <- (sum(I[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I[1:N_age,21])/sum(N[1:N_age,21])) + (sum(I[1:N_age,23])/sum(N[1:N_age,23]))
-external_I1[23] <- (sum(I[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I[1:N_age,22])/sum(N[1:N_age,22])) + (sum(I[1:N_age,24])/sum(N[1:N_age,24]))
-external_I1[24] <- (sum(I[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I[1:N_age,23])/sum(N[1:N_age,23])) + (sum(I[1:N_age,25])/sum(N[1:N_age,25]))
-external_I1[25] <- (sum(I[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I[1:N_age,24])/sum(N[1:N_age,24]))
+external_I1[1] <- (sum(I[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I[1:N_age,3])/sum(N[1:N_age,3]))
+external_I1[2] <- (sum(I[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I[1:N_age,4])/sum(N[1:N_age,4]))
+external_I1[3] <- external_I1[2]
+external_I1[4] <- external_I1[1]
 
 ## FOI from second-plus-time infections in other patches
-external_I2[1] <- (sum(I2[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I2[1:N_age,6])/sum(N[1:N_age,6]))
-external_I2[2] <- (sum(I2[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I2[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I2[1:N_age,7])/sum(N[1:N_age,7]))
-external_I2[3] <- (sum(I2[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I2[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I2[1:N_age,8])/sum(N[1:N_age,8]))
-external_I2[4] <- (sum(I2[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I2[1:N_age,5])/sum(N[1:N_age,5])) + (sum(I2[1:N_age,9])/sum(N[1:N_age,9]))
-external_I2[5] <- (sum(I2[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I2[1:N_age,10])/sum(N[1:N_age,10]))
-external_I2[6] <- (sum(I2[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I2[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I2[1:N_age,11])/sum(N[1:N_age,11]))
-external_I2[7] <- (sum(I2[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I2[1:N_age,6])/sum(N[1:N_age,6])) + (sum(I2[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I2[1:N_age, 12])/sum(N[1:N_age,12]))
-external_I2[8] <- (sum(I2[1:N_age,3])/sum(N[1:N_age,3])) + (sum(I2[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I2[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I2[1:N_age, 13])/sum(N[1:N_age,13]))
-external_I2[9] <- (sum(I2[1:N_age,4])/sum(N[1:N_age,4])) + (sum(I2[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I2[1:N_age,10])/sum(N[1:N_age,10])) + (sum(I2[1:N_age, 14])/sum(N[1:N_age,14]))
-external_I2[10] <- (sum(I2[1:N_age,5])/sum(N[1:N_age,5])) + (sum(I2[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I2[1:N_age,15])/sum(N[1:N_age,15]))
-external_I2[11] <- (sum(I2[1:N_age,6])/sum(N[1:N_age,6])) + (sum(I2[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I2[1:N_age,16])/sum(N[1:N_age,16]))
-external_I2[12] <- (sum(I2[1:N_age,7])/sum(N[1:N_age,7])) + (sum(I2[1:N_age,11])/sum(N[1:N_age,11])) + (sum(I2[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I2[1:N_age, 17])/sum(N[1:N_age,17]))
-external_I2[13] <- (sum(I2[1:N_age,8])/sum(N[1:N_age,8])) + (sum(I2[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I2[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I2[1:N_age, 18])/sum(N[1:N_age,18]))
-external_I2[14] <- (sum(I2[1:N_age,9])/sum(N[1:N_age,9])) + (sum(I2[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I2[1:N_age,15])/sum(N[1:N_age,15])) + (sum(I2[1:N_age, 19])/sum(N[1:N_age,19]))
-external_I2[15] <- (sum(I2[1:N_age,10])/sum(N[1:N_age,10])) + (sum(I2[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I2[1:N_age,20])/sum(N[1:N_age,20]))
-external_I2[16] <- (sum(I2[1:N_age,11])/sum(N[1:N_age,11])) + (sum(I2[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I2[1:N_age,21])/sum(N[1:N_age,21]))
-external_I2[17] <- (sum(I2[1:N_age,12])/sum(N[1:N_age,12])) + (sum(I2[1:N_age,16])/sum(N[1:N_age,16])) + (sum(I2[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I2[1:N_age, 22])/sum(N[1:N_age,22]))
-external_I2[18] <- (sum(I2[1:N_age,13])/sum(N[1:N_age,13])) + (sum(I2[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I2[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I2[1:N_age, 23])/sum(N[1:N_age,23]))
-external_I2[19] <- (sum(I2[1:N_age,14])/sum(N[1:N_age,14])) + (sum(I2[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I2[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I2[1:N_age, 24])/sum(N[1:N_age,24]))
-external_I2[20] <- (sum(I2[1:N_age,15])/sum(N[1:N_age,15])) + (sum(I2[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I2[1:N_age,25])/sum(N[1:N_age,25]))
-external_I2[21] <- (sum(I2[1:N_age,16])/sum(N[1:N_age,16])) + (sum(I2[1:N_age,22])/sum(N[1:N_age,22]))
-external_I2[22] <- (sum(I2[1:N_age,17])/sum(N[1:N_age,17])) + (sum(I2[1:N_age,21])/sum(N[1:N_age,21])) + (sum(I2[1:N_age,23])/sum(N[1:N_age,23]))
-external_I2[23] <- (sum(I2[1:N_age,18])/sum(N[1:N_age,18])) + (sum(I2[1:N_age,22])/sum(N[1:N_age,22])) + (sum(I2[1:N_age,24])/sum(N[1:N_age,24]))
-external_I2[24] <- (sum(I2[1:N_age,19])/sum(N[1:N_age,19])) + (sum(I2[1:N_age,23])/sum(N[1:N_age,23])) + (sum(I2[1:N_age,25])/sum(N[1:N_age,25]))
-external_I2[25] <- (sum(I2[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I2[1:N_age,24])/sum(N[1:N_age,24]))
+external_I2[1] <- (sum(I2[1:N_age,2])/sum(N[1:N_age,2])) + (sum(I2[1:N_age,3])/sum(N[1:N_age,3]))
+external_I2[2] <- (sum(I2[1:N_age,1])/sum(N[1:N_age,1])) + (sum(I2[1:N_age,4])/sum(N[1:N_age,4]))
+external_I2[3] <- external_I2[2]
+external_I2[4] <- external_I2[1]
 
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
@@ -261,9 +219,8 @@ new_S[1, ] <- S[1,j] - outflow_S[1,j] + new_waned_mAb[1,j] + births_not_protecte
 new_S[2:N_age, ] <- S[i,j] - outflow_S[i,j] + new_waned_mAb[i,j]
 
 new_I[1:24, ] <-  I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
-new_I[25, 13] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j] + imported_cases
-new_I[25, 1:12] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
-new_I[25, 14:N_patch] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
+new_I[25, 1] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j] + imported_cases
+new_I[25, 2:4] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
 new_I[26:N_age, ] <-  I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
 
 new_R[1:N_age, ] <- R[i,j] - outflow_R[i,j] + new_recoveries[i,j] + new_recoveries_2[i,j]

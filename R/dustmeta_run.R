@@ -1,10 +1,6 @@
 # MSIRSIR METAPOP 2021
-
-# removing the check on indexes now that all naked "i" have been changed to start at 1 in odin
-options(odin.no_check_naked_index = TRUE)
-sir_model_meta_5x5 <- odin::odin("models/odin_meta_pop_model.R", verbose = FALSE, skip_cache = TRUE)
-sir_model_meta_3x3 <- odin::odin("models/odin_meta_pop_model_3x3.R", verbose = FALSE, skip_cache = TRUE)
-sir_model_meta_2x2 <- odin::odin("models/odin_meta_pop_model_2x2.R", verbose = FALSE, skip_cache = TRUE)
+library(odin.dust)
+msirs_meta_dust <- odin.dust::odin_dust("models/dustmeta.R")
 
 ##########################
 ## customise parameters ##
@@ -85,13 +81,13 @@ connectivity <- 0.05
 tic("meta_pop_5x5")
 # include any user-defined parameters as arguments here
 x <- sir_model_meta_5x5(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma,
-               sigma_m = sigma_m,
-               Ab_susc = Ab_susc, mAb_susc = mAb_susc, reduced_shed = reduced_shed, 
-               mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,mu_3rd_yr = mu_3rd_yr, 
-               mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, 
-               N_0 = N_0, importation_rate = importation_rate, 
-               imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2, 
-               connectivity = connectivity)
+                        sigma_m = sigma_m,
+                        Ab_susc = Ab_susc, mAb_susc = mAb_susc, reduced_shed = reduced_shed, 
+                        mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,mu_3rd_yr = mu_3rd_yr, 
+                        mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, 
+                        N_0 = N_0, importation_rate = importation_rate, 
+                        imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2, 
+                        connectivity = connectivity)
 
 # for a single run
 out <- as.data.frame(x$run(t))

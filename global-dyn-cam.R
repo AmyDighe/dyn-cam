@@ -3,6 +3,7 @@ library(ggplot2)
 library(dplyr)
 library(tidyr)
 library(gganimate)
+library(tictoc) # for benchmarking
 # parameters
 
 foi_fits <- readRDS("data/fit_4bbreal.rds")
