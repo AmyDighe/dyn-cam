@@ -101,10 +101,10 @@ x <- sir_model_vax$new(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma,
                    mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                    importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2,
                    v_gamma = v_gamma, v_sigma = v_sigma, v_sigma_m = v_sigma_m, v_mAb_susc = v_mAb_susc, 
-                   v_Ab_susc = v_Ab_susc, v_shed = v_shed, v_reduced_shed = v_reduced_shed, vax = vax)
+                   v_Ab_susc = v_Ab_susc, v_shed = v_shed, v_reduced_shed = v_reduced_shed, vax = vax, rho = rho)
 
 #out <- as.data.frame(replicate(100, x$run(t)[, 403]))
 out <- as.data.frame(x$run(t))
 
 #toc()
-plot(out$`vS[8]`/(out$`N_pop[8]`))
+plot(out$`vS[48]`/(out$`N_pop[48]`), type = "l")

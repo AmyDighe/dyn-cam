@@ -10,8 +10,8 @@
 # It is written using Odin
 # It can then be run from a user-edited R script "odin_meta_population_run.R"
 
-N_age <- 49 #number of age classes
-N_patch <- 25 #number of subpopulations
+N_age <- user(49) #number of age classes
+N_patch <- user(25) #number of subpopulations
 
 ##############################################################################################################
 # RATES OF TRANSITION BETWEEN DISEASE STATES
@@ -121,18 +121,7 @@ rate_reinfection[1:N_patch] <- beta_Ab * (sum(I[1:N_age, i]) / sum(N[1:N_age, i]
 #####################
 ## mortality rates ##
 #####################
-# user-defined age-dependent mortality rate
-mu_1st_yr <- user(0.0005) # death rate for 1st year of life
-mu_2nd_yr <- user(0.0005) # death rate for 2nd year of life
-mu_3rd_yr <- user(0.00025) # death rate for 3rd year of life
-mu_4th_yr <- user(0.00025) # death rate for 4th year of life
-mu_adult_over_4 <- user(0.00025) # death rate in adulthood (>4 years)
-# expand these across the age strata
-mu[1:12] <- mu_1st_yr
-mu[13:24] <- mu_2nd_yr
-mu[25:36] <- mu_3rd_yr
-mu[37:48] <- mu_4th_yr
-mu[N_age] <- mu_adult_over_4
+mu[] <- user() # user-defined age-dependent mortality rate
 
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection
@@ -231,6 +220,8 @@ pi <- 3.14159 # odin doesn't have pi
 # calculating a seasonal birthrate, with a one year periodicity, not too sharp peak. 
 # can use alpha rather than p_alpha here (bc not coming from a finite pop)
 
+N_0 <- user(1000) # user-defined initial population size per patch
+
 birth_rate <- N_0 * alpha * (1 + (delta * (cos(2 * pi * tt / 360)))) # N_0 is the initial patch population size
 new_births[] <- rpois(birth_rate) #per day
 
@@ -320,6 +311,8 @@ update(seropoz_A4[]) <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) +
 
 ## initial states
 
+S_ini_p[ , ] <- user()
+
 initial(Sm[1:N_age, ]) <- 0
 initial(S[1:N_age, ]) <- S_ini_p[i,j]
 initial(I[1:N_age, ]) <- 0
@@ -333,37 +326,35 @@ initial(I_patch[]) <- 0
 #initial(seroprevalence[1:N_age, ]) <- 0
 initial(seropoz_A4[]) <- 0
 
-## initial population size per patch for use in birthrate
 
-N_0 <- user(1000) # user-defined
 
 ## setting initial conditions using the equilibrium solution for age distribution
 
-births_detr[1:360] <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
-births_det[1:360] <- rpois(births_detr[i]) 
+#births_detr[1:360] <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
+#births_det[1:360] <- rpois(births_detr[i]) 
 
 
 ## if we start the model with the equilibrium amount in each of the first 48 month-wide compartments,
 ## birthrate will be set to balance summed death rate of the equilibrium age distribution
 
-a_max <- 32 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
+#a_max <- 32 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
 ## (calculated in "calculating_a_max.R using exp decay mod)
-ind1[] <- user() # indexes of birth influx for demographic equilibrium solution
-ind2[] <- user()
+#ind1[] <- user() # indexes of birth influx for demographic equilibrium solution
+#ind2[] <- user()
 
 # setting initial number of camels at demographic equilibrium
-S_ini[1, ] <- 0
-S_ini[2:48, ] <- sum(births_det[ind1[i]:ind2[i]]) * exp(- (30 * sum(mu[1:(i - 1)])))
+#S_ini[1, ] <- 0
+#S_ini[2:48, ] <- sum(births_det[ind1[i]:ind2[i]]) * exp(- (30 * sum(mu[1:(i - 1)])))
 
 # special treatment for the final open-ended compartment 49
-yearly_influx <- sum(births_det[1:360]) * exp(-(30 * (sum(mu[1:48])))) #annual inflow into the final age compartment
-yr[1:a_max] <- i  # number of years of influx before max age expectancy reached
-# camels remaining from each cohort to enter in the last 32 years influx that remain
-cohort_remaining[1:a_max] <- yearly_influx * exp(- (360 * yr[i] * mu[N_age])) 
-S_ini[N_age, ] <- sum(cohort_remaining[1:a_max])
+# yearly_influx <- sum(births_det[1:360]) * exp(-(30 * (sum(mu[1:48])))) #annual inflow into the final age compartment
+# yr[1:a_max] <- i  # number of years of influx before max age expectancy reached
+# # camels remaining from each cohort to enter in the last 32 years influx that remain
+# cohort_remaining[1:a_max] <- yearly_influx * exp(- (360 * yr[i] * mu[N_age])) 
+# S_ini[N_age, ] <- sum(cohort_remaining[1:a_max])
 
 # getting proportion of animals in each age-class, multiplying by N_0 and rounding to whole animals
-S_ini_p[1:N_age, ] <- round((S_ini[i,j] / sum(S_ini[1:N_age,j])) * N_0)
+#S_ini_p[1:N_age, ] <- round((S_ini[i,j] / sum(S_ini[1:N_age,j])) * N_0)
 
 
 ################################################################################################################################
@@ -427,10 +418,10 @@ dim(R) <- c(N_age, N_patch)
 dim(S2) <- c(N_age, N_patch)
 dim(I2) <- c(N_age, N_patch)
 
-dim(S_ini) <- c(N_age, N_patch)
+#dim(S_ini) <- c(N_age, N_patch)
 dim(S_ini_p) <- c(N_age, N_patch)
-dim(yr) <- a_max
-dim(cohort_remaining) <- a_max
+#dim(yr) <- a_max
+#dim(cohort_remaining) <- a_max
 dim(norm_p_infection) <- c(N_age, N_patch)
 dim(norm_p_infection_mAb) <- c(N_age, N_patch)
 dim(norm_p_gamma) <- N_age
@@ -460,13 +451,13 @@ dim(new_R) <- c(N_age, N_patch)
 dim(new_S2) <- c(N_age, N_patch)
 dim(new_I2) <- c(N_age, N_patch)
 
-dim(births_det) <- 360
-dim(births_detr) <- 360
+# dim(births_det) <- 360
+# dim(births_detr) <- 360
 #dim(seroprevalence) <- c(N_age, N_patch)
 dim(N) <- c(N_age, N_patch)
 dim(I_patch) <- N_patch
-dim(ind1) <- 48
-dim(ind2) <- 48
+# dim(ind1) <- 48
+# dim(ind2) <- 48
 
 dim(new_births) <- N_patch
 dim(births_protected) <- N_patch
