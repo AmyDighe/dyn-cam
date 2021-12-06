@@ -457,7 +457,7 @@ dim(new_I2) <- c(N_age, N_patch)
 # dim(births_detr) <- 360
 #dim(seroprevalence) <- c(N_age, N_patch)
 dim(N) <- c(N_age, N_patch)
-dim(I_patch) <- N_patch
+#dim(I_patch) <- N_patch
 dim(imp_t) <- 5
 # dim(ind1) <- 48
 # dim(ind2) <- 48
