@@ -297,11 +297,13 @@ update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning
 
 ## record total population size and seroprevalence in each age group, and in adults >4
 
-update(N[1:N_age, ]) <- Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j]
-update(I_patch[1:N_patch]) <- sum(I[1:N_age, i]) + sum(I2[1:N_age, i])
-
+#update(N[1:N_age, ]) <- Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j]
+#update(I_patch[1:N_patch]) <- sum(I[1:N_age, i]) + sum(I2[1:N_age, i])
 #update(seroprevalence[1:N_age,]) <- (I[i,j] + R[i,j] + S2[i,j] + I2[i,j]) / (Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j])
-update(seropoz_A4[]) <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))/ (sum(Sm[N_age,i]) + sum(S[N_age,i]) + sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))
+#update(seropoz_A4[]) <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))/ (sum(Sm[N_age,i]) + sum(S[N_age,i]) + sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))
+
+N[1:N_age, ] <- Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j]
+seropoz_A4[] <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))/ (sum(Sm[N_age,i]) + sum(S[N_age,i]) + sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))
 
 ##################################################################################################################################
 # initial conditions
@@ -321,10 +323,10 @@ initial(S2[1:N_age, ]) <- 0
 initial(I2[1:N_age, ]) <- 0
 
 initial(tt) <- 1
-initial(N[1:N_age, ]) <- S_ini_p[i,j]
-initial(I_patch[]) <- 0
+#initial(N[1:N_age, ]) <- S_ini_p[i,j]
+#initial(I_patch[]) <- 0
 #initial(seroprevalence[1:N_age, ]) <- 0
-initial(seropoz_A4[]) <- 0
+#initial(seropoz_A4[]) <- 0
 
 
 
