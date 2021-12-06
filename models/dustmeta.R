@@ -234,7 +234,7 @@ births_not_protected[] <- new_births[i] - births_protected[i] #  NOT protected b
 
 importation_rate <- user(0.01) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
-imp_t <- user() # a user defined time at which cases are imported
+imp_t[] <- user() # a user defined time at which cases are imported
 
 ###############################################################################################################
 # EQUATIONS for movement of individuals between disease states and age classes
@@ -275,7 +275,7 @@ update(S[N_age, ]) <- if(tt %% 30 == 0) new_S[i-1,j] + new_S[i,j] else new_S[i,j
 
 update(I[1, ]) <-  if(tt %% 30 == 0) 0 else new_I[1,j]
 update(I[2:24, ]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
-update(I[25, 13]) <- if(tt %% 30 == 0) new_I[i-1,j] else if(tt == imp_t) 5 + new_I[i,j] else new_I[i,j]
+update(I[25, 13]) <- if(tt %% 30 == 0) new_I[i-1,j] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 5 + new_I[i,j] else new_I[i,j]
 update(I[25, 1:12]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
 update(I[25, 14:N_patch]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
 update(I[26:48, ]) <- if(tt %% 30 == 0) new_I[i-1,j] else new_I[i,j]
@@ -456,6 +456,7 @@ dim(new_I2) <- c(N_age, N_patch)
 #dim(seroprevalence) <- c(N_age, N_patch)
 dim(N) <- c(N_age, N_patch)
 dim(I_patch) <- N_patch
+dim(imp_t) <- 5
 # dim(ind1) <- 48
 # dim(ind2) <- 48
 
