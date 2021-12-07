@@ -208,7 +208,7 @@ new_infections[1:N_age, ] <- rbinom(outflow_S[i,j], prob = norm_p_infection[i,j]
 new_recoveries[1:N_age, ] <- rbinom(outflow_I[i,j], prob = norm_p_gamma[i])
 new_waned[1:N_age, ] <- rbinom(outflow_R[i,j], prob = norm_p_sigma[i])
 new_reinfections[1:N_age, ] <- rbinom(outflow_S2[i,j], prob = norm_p_reinfection[i,j])
-new_recoveries_2[1:N_age, ] <- rbinom(outflow_I2[i,j], prob = norm_p_gamma[i])
+new_recoveries_two[1:N_age, ] <- rbinom(outflow_I2[i,j], prob = norm_p_gamma[i])
 
 ###################
 ## birth process ##
@@ -257,7 +257,7 @@ new_I[25, 1:12] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infection
 new_I[25, 14:N_patch] <- I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
 new_I[26:N_age, ] <-  I[i,j] - outflow_I[i,j] + new_infections[i,j] + new_infections_mAb[i,j]
 
-new_R[1:N_age, ] <- R[i,j] - outflow_R[i,j] + new_recoveries[i,j] + new_recoveries_2[i,j]
+new_R[1:N_age, ] <- R[i,j] - outflow_R[i,j] + new_recoveries[i,j] + new_recoveries_two[i,j]
 new_S2[1:N_age, ] <- S2[i,j] - outflow_S2[i,j] + new_waned[i,j]
 new_I2[1:N_age, ] <- I2[i,j] - outflow_I2[i,j] + new_reinfections[i,j]
 
@@ -375,8 +375,8 @@ initial(tt) <- 1
 # output(S_1) <- sum(S[1:N_age, ]) # susceptible individuals never infected
 # output(I_1) <- sum(I[1:N_age, ]) # individuals infectious for the 1st time
 # output(R_1) <- sum(R[1:N_age, ]) # individuals recovered from a 1st infection
-# output(S_2) <- sum(S2[1:N_age, ]) # susceptible individuals whose immunity has waned
-# output(I_2) <- sum(I2[1:N_age, ]) # individuals infectious for the 2nd+ time
+# output(S_two) <- sum(S2[1:N_age, ]) # susceptible individuals whose immunity has waned
+# output(I_two) <- sum(I2[1:N_age, ]) # individuals infectious for the 2nd+ time
 # 
 # output(Stot) <- sum(S[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(Sm[1:N_age, ]) # total number of susceptible individuals
 # output(Itot) <- sum(I[1:N_age, ]) + sum(I2[1:N_age, ]) # total number of infectious individuals
@@ -437,7 +437,7 @@ dim(new_infections_mAb) <- c(N_age, N_patch)
 dim(new_recoveries) <- c(N_age, N_patch)
 dim(new_waned) <- c(N_age, N_patch)
 dim(new_reinfections) <- c(N_age, N_patch)
-dim(new_recoveries_2) <- c(N_age, N_patch)
+dim(new_recoveries_two) <- c(N_age, N_patch)
 
 dim(outflow_Sm) <- c(N_age, N_patch)
 dim(outflow_S) <- c(N_age, N_patch)
