@@ -33,11 +33,6 @@ beta <- user(0.3) #base rate
 mAb_susc <- user(0) # proportion of susceptibility experienced if maternal antibodies (mAbs) present
 Ab_susc <- user(1) # proportion of susceptibility experienced if previously infected
 reduced_shed <- user(1) # proportion of shedding/infectiousness seen in reinfections. default = no difference
-beta_mAb <- mAb_susc * beta # infection rate in the presence of maternally acquired Abs
-beta_Ab <- Ab_susc * beta # reinfection rate (infection rate in the presence of Ab protection)
-beta_I2 <- reduced_shed * beta # rate at which second infections infect naive susceptible dromedaries
-beta_I2_mAb <- mAb_susc * reduced_shed * beta # rate at which second infections infect mAb protected calves
-beta_I2_Ab <- Ab_susc * reduced_shed * beta # rate at which second infections infect Ab protected animals
 
 ###############################
 ## meta-population structure ##
@@ -104,19 +99,12 @@ external_I2[25] <- (sum(I2[1:N_age,20])/sum(N[1:N_age,20])) + (sum(I2[1:N_age,24
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
 rate_infection[1:N_patch] <- beta * (sum(I[1:N_age, i]) / sum(N[1:N_age, i]))  + 
-  beta_I2 * (sum(I2[1:N_age, i]) / sum(N[1:N_age, i])) +
+  beta * reduced_shed * (sum(I2[1:N_age, i]) / sum(N[1:N_age, i])) +
   beta * connectivity * external_I1[i] + 
-  beta_I2 * connectivity * external_I2[i]
+  beta * reduced_shed * connectivity * external_I2[i]
 
-rate_infection_mAb[1:N_patch] <- beta_mAb * (sum(I[1:N_age, i]) / sum(N[1:N_age, i])) + 
-  beta_I2_mAb * (sum(I2[1:N_age, i]) / sum(N[1:N_age, i])) + 
-  beta_mAb * connectivity * external_I1[i] + 
-  beta_I2_mAb * connectivity * external_I2[i]
-
-rate_reinfection[1:N_patch] <- beta_Ab * (sum(I[1:N_age, i]) / sum(N[1:N_age, i])) + 
-  beta_I2_Ab * (sum(I2[1:N_age, i]) / sum(N[1:N_age, i])) + 
-  beta_Ab * connectivity * external_I1[i] + 
-  beta_I2_Ab * connectivity * external_I2[i]
+rate_infection_mAb[1:N_patch] <- mAb_susc * rate_infection[i]
+rate_reinfection[1:N_patch] <- Ab_susc * rate_infection[i]
 
 #####################
 ## mortality rates ##
@@ -262,7 +250,6 @@ new_S2[1:N_age, ] <- S2[i,j] - outflow_S2[i,j] + new_waned[i,j]
 new_I2[1:N_age, ] <- I2[i,j] - outflow_I2[i,j] + new_reinfections[i,j]
 
 
-
 ## STEP 2 update with ageing
 
 update(Sm[1, ]) <- if(tt %% 30 == 0) 0 else new_Sm[1,j]
@@ -295,14 +282,9 @@ update(I2[N_age, ]) <- if(tt %% 30 == 0) new_I2[i - 1, j] + new_I2[i, j] else ne
 
 update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning to work
 
-## record total population size and seroprevalence in each age group, and in adults >4
-
-#update(N[1:N_age, ]) <- Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j]
-#update(I_patch[1:N_patch]) <- sum(I[1:N_age, i]) + sum(I2[1:N_age, i])
-#update(seroprevalence[1:N_age,]) <- (I[i,j] + R[i,j] + S2[i,j] + I2[i,j]) / (Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j])
-#update(seropoz_A4[]) <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))/ (sum(Sm[N_age,i]) + sum(S[N_age,i]) + sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))
-
+## record total population size for use in FOI
 N[1:N_age, ] <- Sm[i,j] + S[i,j] + I[i,j] + R[i,j] + S2[i,j] + I2[i,j]
+## record adult seroprevalence for use in births_protected
 seropoz_A4[] <- (sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))/ (sum(Sm[N_age,i]) + sum(S[N_age,i]) + sum(S2[N_age,i]) + sum(I[N_age,i]) + sum(I2[N_age,i]) + sum(R[N_age,i]))
 
 ##################################################################################################################################
@@ -323,82 +305,8 @@ initial(S2[1:N_age, ]) <- 0
 initial(I2[1:N_age, ]) <- 0
 
 initial(tt) <- 1
-#initial(N[1:N_age, ]) <- S_ini_p[i,j]
-#initial(I_patch[]) <- 0
-#initial(seroprevalence[1:N_age, ]) <- 0
-#initial(seropoz_A4[]) <- 0
 
-
-
-## setting initial conditions using the equilibrium solution for age distribution
-
-#births_detr[1:360] <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
-#births_det[1:360] <- rpois(births_detr[i]) 
-
-
-## if we start the model with the equilibrium amount in each of the first 48 month-wide compartments,
-## birthrate will be set to balance summed death rate of the equilibrium age distribution
-
-#a_max <- 32 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
-## (calculated in "calculating_a_max.R using exp decay mod)
-#ind1[] <- user() # indexes of birth influx for demographic equilibrium solution
-#ind2[] <- user()
-
-# setting initial number of camels at demographic equilibrium
-#S_ini[1, ] <- 0
-#S_ini[2:48, ] <- sum(births_det[ind1[i]:ind2[i]]) * exp(- (30 * sum(mu[1:(i - 1)])))
-
-# special treatment for the final open-ended compartment 49
-# yearly_influx <- sum(births_det[1:360]) * exp(-(30 * (sum(mu[1:48])))) #annual inflow into the final age compartment
-# yr[1:a_max] <- i  # number of years of influx before max age expectancy reached
-# # camels remaining from each cohort to enter in the last 32 years influx that remain
-# cohort_remaining[1:a_max] <- yearly_influx * exp(- (360 * yr[i] * mu[N_age])) 
-# S_ini[N_age, ] <- sum(cohort_remaining[1:a_max])
-
-# getting proportion of animals in each age-class, multiplying by N_0 and rounding to whole animals
-#S_ini_p[1:N_age, ] <- round((S_ini[i,j] / sum(S_ini[1:N_age,j])) * N_0)
-
-
-################################################################################################################################
-
-# OUTPUTS
-
-################################################################################################################################
-
-#########################################
-## number of individuals in each state ##
-#########################################
-
-# total number of individuals still protected by maternal immunity
-# output(M) <- sum(Sm[1:N_age, ])
-# 
-# output(S_1) <- sum(S[1:N_age, ]) # susceptible individuals never infected
-# output(I_1) <- sum(I[1:N_age, ]) # individuals infectious for the 1st time
-# output(R_1) <- sum(R[1:N_age, ]) # individuals recovered from a 1st infection
-# output(S_two) <- sum(S2[1:N_age, ]) # susceptible individuals whose immunity has waned
-# output(I_two) <- sum(I2[1:N_age, ]) # individuals infectious for the 2nd+ time
-# 
-# output(Stot) <- sum(S[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(Sm[1:N_age, ]) # total number of susceptible individuals
-# output(Itot) <- sum(I[1:N_age, ]) + sum(I2[1:N_age, ]) # total number of infectious individuals
-# output(Rtot) <- sum(R[1:N_age, ]) 
-# 
-# output(Ntot) <- sum(N[1:N_age, ]) # total number of individuals
-
-####################
-## seroprevalence ##
-####################
-# output(seropoz_A) <- 100 * (sum(Sm[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))/(sum(Sm[25:N_age, ]) + sum(S[25:N_age, ]) + sum(S2[25:N_age, ]) + sum(I[25:N_age, ]) + sum(I2[25:N_age, ]) + sum(R[25:N_age, ]))
-# output(seropoz_J) <- 100 * (sum(Sm[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ])) / (sum(Sm[1:24, ]) + sum(S[1:24, ]) + sum(I[1:24, ]) + sum(R[1:24, ]) + sum(S2[1:24, ]) + sum(I2[1:24, ]))
-# output(seropz_tot) <- 100 * (sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))/(sum(Sm[1:N_age, ]) + sum(S[1:N_age, ]) + sum(I[1:N_age, ]) + sum(R[1:N_age, ]) + sum(S2[1:N_age, ]) + sum(I2[1:N_age, ]))
-
-############################
-## age at first infection ##
-############################
-# output(incidence_new_inf) <- sum(new_infections[1:N_age, ])
-# output(total_incidence) <- (sum(new_infections[1:N_age, ]) + sum(new_reinfections[1:N_age, ]))
-
-
-################################################################################################################################
+##################################################################################################################################
 
 # assigning DIMENSIONS needed for arrays
 
@@ -420,10 +328,7 @@ dim(R) <- c(N_age, N_patch)
 dim(S2) <- c(N_age, N_patch)
 dim(I2) <- c(N_age, N_patch)
 
-#dim(S_ini) <- c(N_age, N_patch)
 dim(S_ini_p) <- c(N_age, N_patch)
-#dim(yr) <- a_max
-#dim(cohort_remaining) <- a_max
 dim(norm_p_infection) <- c(N_age, N_patch)
 dim(norm_p_infection_mAb) <- c(N_age, N_patch)
 dim(norm_p_gamma) <- N_age
@@ -453,14 +358,9 @@ dim(new_R) <- c(N_age, N_patch)
 dim(new_S2) <- c(N_age, N_patch)
 dim(new_I2) <- c(N_age, N_patch)
 
-# dim(births_det) <- 360
-# dim(births_detr) <- 360
-#dim(seroprevalence) <- c(N_age, N_patch)
 dim(N) <- c(N_age, N_patch)
 #dim(I_patch) <- N_patch
 dim(imp_t) <- 5
-# dim(ind1) <- 48
-# dim(ind2) <- 48
 
 dim(new_births) <- N_patch
 dim(births_protected) <- N_patch

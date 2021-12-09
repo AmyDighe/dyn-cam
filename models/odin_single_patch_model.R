@@ -30,17 +30,12 @@ beta <- user(0.3) #base rate
 mAb_susc <- user(0) # proportion of susceptibility experienced if maternal antibodies (mAbs) present
 Ab_susc <- user(1) # proportion of susceptibility experienced if previously infected
 reduced_shed <- user(1) # proportion of shedding/infectiousness seen in reinfections. default = no difference
-beta_mAb <- mAb_susc * beta # infection rate in the presence of maternally acquired Abs
-beta_Ab <- Ab_susc * beta # reinfection rate (infection rate in the presence of Ab protection)
-beta_I2 <- reduced_shed * beta # rate at which second infections infect naive susceptible dromedaries
-beta_I2_mAb <- mAb_susc * reduced_shed * beta # rate at which second infections infect mAb protected calves
-beta_I2_Ab <- Ab_susc * reduced_shed * beta # rate at which second infections infect Ab protected animals
 
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
-rate_infection <- beta * (sum(I[1:N_age]) / sum(N[1:N_age]))  + beta_I2 * (sum(I2[1:N_age]) / sum(N[1:N_age])) 
-rate_infection_mAb <- beta_mAb * (sum(I[1:N_age]) / sum(N[1:N_age])) + beta_I2_mAb * (sum(I2[1:N_age]) / sum(N[1:N_age]))
-rate_reinfection <- beta_Ab * (sum(I[1:N_age]) / sum(N[1:N_age])) + beta_I2_Ab * (sum(I2[1:N_age]) / sum(N[1:N_age]))
+rate_infection <- beta * (sum(I[1:N_age]) / sum(N[1:N_age]))  + beta * reduced_shed * (sum(I2[1:N_age]) / sum(N[1:N_age])) 
+rate_infection_mAb <- mAb_susc * rate_infection
+rate_reinfection <- Ab_susc * rate_infection
 
 #####################
 ## mortality rates ##
