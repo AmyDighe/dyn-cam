@@ -52,7 +52,7 @@ t <- seq(0:time_period)
 importation_rate <- 0
 
 # if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 1510000  + (360 * seq(0, 4, by = 1))
+imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
@@ -84,9 +84,9 @@ v_shed <- 1/92 # infectiousness of vaccinated naive animals cf naive unvaccinate
 v_reduced_shed <- 1/724 # infectiousness of vaccinated previously infected animals cf naive unvaccinated
 
 # age dependent rates of vaccination
-vax <- c(rep(0, 6), 0.8, rep(0, 42))
+vaxp <- c(rep(0, 6), 0, rep(0, 42))
 
-rho <- 0 #rate at which vaccine induced immunity wanes
+rho <- 0.5 #rate at which vaccine induced immunity wanes
 
 ###############
 ## run model ##
@@ -101,10 +101,18 @@ x <- sir_model_vax$new(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma,
                    mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                    importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2,
                    v_gamma = v_gamma, v_sigma = v_sigma, v_sigma_m = v_sigma_m, v_mAb_susc = v_mAb_susc, 
-                   v_Ab_susc = v_Ab_susc, v_shed = v_shed, v_reduced_shed = v_reduced_shed, vax = vax, rho = rho)
+                   v_Ab_susc = v_Ab_susc, v_shed = v_shed, v_reduced_shed = v_reduced_shed, vaxp = vaxp, rho = rho)
 
 #out <- as.data.frame(replicate(100, x$run(t)[, 403]))
 out <- as.data.frame(x$run(t))
 
 #toc()
 plot(out$`vS[48]`/(out$`N_pop[48]`), type = "l")
+
+incidence <- sum(new_infections[(last_imp + 360) : (last_imp + 10*360)]) +
+  sum(new_reinfections[(last_imp + 360) : (last_imp + 10*360)])
+
+output <- sum(out$I_1[(last_imp + 360) : (last_imp + 10*360)]) +
+  reduced_shed * sum(out$I_2[(last_imp + 360) : (last_imp + 10*360)]) +
+  v_shed * sum(out$vI_1[(last_imp + 360) : (last_imp + 10*360)]) +
+  v_reduced_shed * sum(out$vI_2[(last_imp + 360) : (last_imp + 10*360)])

@@ -81,7 +81,7 @@ v_sigma_m <- user(0.006)
 ###########################
 ## proportion vaccinated ##
 ###########################
-vax[] <- user()
+vaxp[] <- user()
 
 ##################################################
 ## rate at which vaccine induced immunity wanes ##
@@ -268,7 +268,9 @@ new_vR[1:N_age] <- vR[i] - outflow_vR[i] + v_new_recoveries[i] + v_new_recoverie
 new_vS2[1:N_age] <- vS2[i] - outflow_vS2[i] + v_new_waned[i]
 new_vI2[1:N_age] <- vI2[i] - outflow_vI2[i] + v_new_reinfections[i]
 
-## STEP 2 update with ageing
+## STEP 2 update with ageing & vaccination
+
+vax[1:N_age] <- if(tt > (imp_t[5] + 360)) vaxp[i] else 0
 
 update(Sm[1]) <- if(tt %% 30 == 0) 0 else new_Sm[1]
 update(Sm[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_Sm[i - 1]) else new_Sm[i]
@@ -438,8 +440,7 @@ output(seropoz_tot) <- 100 * (sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age
 ## incidence ##
 ###############
 output(incidence_new_inf) <- sum(new_infections[1:N_age])
-output(incidence_indig_inf) <- sum(new_infections[1:N_age]) + sum(new_reinfections[1:N_age])
-output(total_incidence) <- (sum(new_infections[1:N_age]) + sum(new_reinfections[1:N_age]))
+output(total_incidence) <- sum(new_infections[1:N_age]) + sum(new_reinfections[1:N_age]) + sum(v_new_infections[1:N_age]) + sum(v_new_reinfections[1:N_age])
 
 ###########
 ## other ##
@@ -460,6 +461,7 @@ output(yy) <- yr[12]
 
 dim(mu) <- N_age
 dim(vax) <- N_age
+dim(vaxp) <- N_age
 dim(p_mu) <- N_age
 dim(p_Sm) <- N_age
 dim(p_S) <- N_age
