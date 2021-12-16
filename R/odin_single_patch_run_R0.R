@@ -15,13 +15,13 @@ duration_infection <- 14 # default =
 gamma <- 1/duration_infection
 
 # input a value for the average duration of complete immunity following infection (in days) 
-duration_immunity <- 1 # default = 
+duration_immunity <- c(1,1,1,90,60,30,60) # default = 
 sigma <- 1/duration_immunity # default = 
 
 # input a value between 0 and 1 for susceptibility experienced by individuals with mAbs and Abs
 ## 0 would mean mAbs/Abs afford complete protection from MERS (default)
 ## 1 would mean mAbs/Abs afford no protection at all
-Ab_susc <- 1 # default = 
+Ab_susc <- c(1,0.75,0.25,1,1,1,0.75) # default = 
 mAb_susc <- 0 # default = 0
 
 # input value for the proportion of baseline naive infectiousness
@@ -67,37 +67,51 @@ ind2 <- rep(ind2, 4)
 ###############
 ## run model ##
 ###############
+scenario <- c("MSIS_100", "MSIS_75", "MSIS_25", 
+              "MSIRS_90", "MSIRS_60", "MSIRS_30",
+              "MSIRS_75_90")
 
 last_imp <- imp_t[5]
-beta_vector <- beta_vector_MSIS2
 mean_foi <- vector(length = length(beta_vector))
+for(j in 1:7){
+  
+  Ab_susc <- Ab_susc[j]
+  sigma <- sigma[j]
 
 for(i in 1:(length(beta_vector))){
 # include any user-defined parameters as arguments here
-  beta <- beta_vector[i]
-x <- sir_model(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
+  beta <- beta_matrix[i,j]
+x <- sir_model$new(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
                mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
                mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
 
-out <- as.data.frame(replicate(1000, x$run(t)[, c(403,405)]))
-out_I <- out[,grep("Itot", colnames(out))]
+out <- as.data.frame(x$run(t))
+out <- as.data.frame(replicate(1000, x$run(t)[, c(398, 401, 403, 405)]))
+out_I1 <- out[,grep("I_1", colnames(out))]
+out_I2 <- out[,grep("I_2", colnames(out))]
+out_Itot <- out[,grep("Itot", colnames(out))]
 out_N <- out[,grep("Ntot", colnames(out))]
-idx_persist <- which(out_I[last_imp + (20*360),] > 0)
-out_I_persist <- out_I[,idx_persist]
+idx_persist <- which(out_Itot[last_imp + (20*360),] > 0)
+out_I1_persist <- out_I1[,idx_persist]
+out_I2_persist <- out_I2[,idx_persist]
 out_N_persist <- out_N[,idx_persist]
+
 if(length(idx_persist) > 1){
-I_N <- colMeans(out_I_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])  
+I1_N <- colMeans(out_I1_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])  
+I2_N <- colMeans(out_I2_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])
 } else {
-  I_N <- mean(out_I_persist[(last_imp + 2*360):(last_imp + 20*360)] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360)])
+  I1_N <- mean(out_I1_persist[(last_imp + 2*360):(last_imp + 20*360)] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360)])
+  I2_N <- mean(out_I2_persist[(last_imp + 2*360):(last_imp + 20*360)] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360)])
 }
 
-foi <- beta * I_N
+foi <- beta * I1_N + beta * reduced_shed * I2_N
 mean_foi[i] <- mean(foi)
 print(mean_foi[i]) }
 
-saveRDS(file = "results/mean_foi_MSIS2.rds", mean_foi)
+saveRDS(file = paste("results/mean_foi_", scenario[j], sep = ""))
 
+}
 
 
 
