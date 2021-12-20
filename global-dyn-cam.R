@@ -58,14 +58,12 @@ par_grid_metapop <- expand.grid(waning = waning_meta,
                         import_time = import_time_meta,
                         connectivity = connectivity)
 
-# beta vectors - make sure they span foi's from the cat model
-beta_vector_MSIS1 <- seq(0.08, 0.45, by = 0.01) # MSIS 1 day comp, 100% susc, 1/10 redshed
-beta_vector_MSIS2 <- seq(0.08, 0.65, by = 0.01) # MSIS 1 day comp, 100% susc, 1/92 redshed
-beta_vector_MSIS3 <- seq(0.08, 0.7, by = 0.01) # MSIS 1 day comp, 75% susc, 1/92 redshed
-beta_vector_MSIS4 <- seq(0.08, 1.1, by = 0.01) # MSIS 1 day comp, 25% susc, 1/92 redshed
-beta_vector_MSIRS1 <- seq(0.08, 0.75, by = 0.01) # MSIRS 90 day comp, 100% susc, 1/92 redshed
-beta_vector_MSIRS2 <- seq(0.08, 0.7, by = 0.01) # MSIRS 60 day comp, 100% susc, 1/92 redshed
-beta_vector_MSIRS3 <- seq(0.08, 0.7, by = 0.01) # MSIRS 30 day comp, 100% susc, 1/92 redshed
-beta_vector_comb1 <- seq(0.08, 0.75, by = 0.01) # comb 60 day comp, 75% susc, 1/92 redshed
-beta_vector_MSIS5 <- seq(0.08, 0.55, by = 0.01) # MSIS5 1 day comp, 75% susc, 1/10 redshed
-beta_vector_MSIRS5 <- seq(0.08, 0.6, by = 0.01) # MSIS5 90 day comp, 100% susc, 1/10 redshed
+beta_list <- list(MSIRS_75_90_92 = seq(0.08, 3.6, by = 0.05),
+                  MSIS_100_1_92 = seq(0.08, 3.0, by = 0.05),
+                 MSIS_75_1_92 = seq(0.08, 3.2, by = 0.05),
+                 MSIS_25_1_92 = seq(0.08, 3.6, by = 0.05),
+                 MSIRS_100_90_92 = seq(0.08, 3.5, by = 0.05),
+                 MSIRS_100_30_92 = seq(0.08, 3.2, by = 0.05),
+                 MSIRS_75_90_10 = seq(0.08, 1.8, by = 0.05),
+                 MSIS_75_1_10 = seq(0.08, 1.05, by = 0.05),
+                 MSIRS_100_90_10 = seq(0.08, 1.8, by = 0.05))

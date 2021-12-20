@@ -15,18 +15,18 @@ duration_infection <- 14 # default =
 gamma <- 1/duration_infection
 
 # input a value for the average duration of complete immunity following infection (in days) 
-duration_immunity <- c(1,1,1,90,60,30,60) # default = 
-sigma <- 1/duration_immunity # default = 
+duration_immunity <- c(90,1,1,1,90,30,90,1,90) # default = 
+sigma_v <- 1/duration_immunity # default = 
 
 # input a value between 0 and 1 for susceptibility experienced by individuals with mAbs and Abs
 ## 0 would mean mAbs/Abs afford complete protection from MERS (default)
 ## 1 would mean mAbs/Abs afford no protection at all
-Ab_susc <- c(1,0.75,0.25,1,1,1,0.75) # default = 
+Ab_susc_v <- c(0.75, 1, 0.75, 0.25, 1, 1, 0.75, 0.75, 1) # default = 
 mAb_susc <- 0 # default = 0
 
 # input value for the proportion of baseline naive infectiousness
 # seen in reinfected animals
-reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
+reduced_shed_v <- c(rep(1/92, 6),rep(0.1, 3)) # based on AUC from shedding in Alharbi 
 
 # input values for the age dependent removal rate - balance birthrate
 mu_1st_yr <- 0.0011 # death rate for 1st year of life = 40% removal
@@ -67,26 +67,26 @@ ind2 <- rep(ind2, 4)
 ###############
 ## run model ##
 ###############
-scenario <- c("MSIS_100", "MSIS_75", "MSIS_25", 
-              "MSIRS_90", "MSIRS_60", "MSIRS_30",
-              "MSIRS_75_90")
+scenario <- names(beta_list)
 
 last_imp <- imp_t[5]
-mean_foi <- vector(length = length(beta_vector))
-for(j in 1:7){
-  
-  Ab_susc <- Ab_susc[j]
-  sigma <- sigma[j]
-
+for(j in 1:9){
+  Ab_susc <- Ab_susc_v[j]
+  sigma <- sigma_v[j]
+  reduced_shed <- reduced_shed_v[j]
+  beta_vector <- beta_list[[j]]
+  mean_foi <- vector(length = length(beta_vector))
 for(i in 1:(length(beta_vector))){
 # include any user-defined parameters as arguments here
-  beta <- beta_matrix[i,j]
+beta <- beta_vector[i]
 x <- sir_model$new(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, Ab_susc = Ab_susc, 
                mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
                mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
                importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2)
-
-out <- as.data.frame(x$run(t))
+out <- as.data.frame(x$run(t)[, c(398, 401, 403, 405)])
+foi <- beta * (out$I_1[(last_imp + 2*360):(last_imp + 20*360)]/out$Ntot[(last_imp + 2*360):(last_imp + 20*360)]) + 
+  beta * reduced_shed * (out$I_2[(last_imp + 2*360):(last_imp + 20*360)]/out$Ntot[(last_imp + 2*360):(last_imp + 20*360)])
+mean(foi)
 out <- as.data.frame(replicate(1000, x$run(t)[, c(398, 401, 403, 405)]))
 out_I1 <- out[,grep("I_1", colnames(out))]
 out_I2 <- out[,grep("I_2", colnames(out))]
@@ -97,19 +97,23 @@ out_I1_persist <- out_I1[,idx_persist]
 out_I2_persist <- out_I2[,idx_persist]
 out_N_persist <- out_N[,idx_persist]
 
-if(length(idx_persist) > 1){
-I1_N <- colMeans(out_I1_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])  
-I2_N <- colMeans(out_I2_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])
-} else {
+if(length(idx_persist) == 0){
+  mean_foi[i] <- NA
+} else if(length(idx_persist) > 1){
+  I1_N <- colMeans(out_I1_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])  
+  I2_N <- colMeans(out_I2_persist[(last_imp + 2*360):(last_imp + 20*360),] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360),])
+  foi <- beta * I1_N + beta * reduced_shed * I2_N
+  mean_foi[i] <- mean(foi)
+} else if(length(idx_persist) == 1) {
   I1_N <- mean(out_I1_persist[(last_imp + 2*360):(last_imp + 20*360)] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360)])
   I2_N <- mean(out_I2_persist[(last_imp + 2*360):(last_imp + 20*360)] / out_N_persist[(last_imp + 2*360):(last_imp + 20*360)])
-}
+  foi <- beta * I1_N + beta * reduced_shed * I2_N
+  mean_foi[i] <- mean(foi)
+  }
 
-foi <- beta * I1_N + beta * reduced_shed * I2_N
-mean_foi[i] <- mean(foi)
-print(mean_foi[i]) }
+print(paste("i =", i, "foi= ", mean_foi[i], sep = " ")) }
 
-saveRDS(file = paste("results/mean_foi_", scenario[j], sep = ""))
+saveRDS(file = paste("results/mean_foi_", scenario[j], ".rds", sep = ""), object = mean_foi)
 
 }
 
