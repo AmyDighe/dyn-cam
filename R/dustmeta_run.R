@@ -64,7 +64,7 @@ N_0 <- 1000000
 importation_rate <- 0
 
 # if rather than a rate you want importation to occur on a specific day
-imp_t <- 1510000  + (360 * seq(0, 4, by = 1))
+imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
 # set a level of seasonality for births 
 # (1 being strongly seasonal, 0 being not at all seasonal)
@@ -81,7 +81,7 @@ S_ini_p <- stoch_init(alpha, delta, N_0, mu, N_age, N_patch)
 ## run the model ##
 ###################
 
-n_particles <- 2L
+n_particles <- 4L
 
 msirs_model <- msirs_meta_dust$new(pars = list(N_age = N_age, N_patch = N_patch, 
                                                alpha = alpha, beta = beta, gamma = gamma, 
@@ -93,9 +93,28 @@ msirs_model <- msirs_meta_dust$new(pars = list(N_age = N_age, N_patch = N_patch,
                                                S_ini_p = S_ini_p), 
                          step = 1, 
                          n_particles = n_particles, 
-                         n_threads = 1L, 
+                         n_threads = 4L, 
                          seed = 1L) 
-n_steps <- 360
+n_steps <- 9000
 
-msirs_model$run(10)
+tic()
+msirs_model$run(9000)
+toc()
 
+
+tic()
+x <- array(NA, dim = c(msirs_model$info()$len, n_particles, n_steps))
+
+for (t in seq_len(n_steps)) {
+  x[ , , t] <- msirs_model$run(t)
+}
+time <- x[1, 1, ]
+x <- x[-1, , ]
+toc()
+matplot(time, t(x[1, , ]), type = "l",
+        xlab = "Time", ylab = "Number of individuals",
+        lty = 1, ylim = range(x))
+matlines(time, t(x[2, , ]), col = cols[["I"]], lty = 1)
+matlines(time, t(x[3, , ]), col = cols[["R"]], lty = 1)
+legend("left", lwd = 1, col = cols, legend = names(cols), bty = "n")
+ 
