@@ -84,9 +84,9 @@ v_shed <- 1/92 # infectiousness of vaccinated naive animals cf naive unvaccinate
 v_reduced_shed <- 1/724 # infectiousness of vaccinated previously infected animals cf naive unvaccinated
 
 # age dependent rates of vaccination
-vaxp <- c(rep(0, 6), 0, rep(0, 42))
+vaxp <- c(rep(0, 6), 0.8, rep(0, 42))
 
-rho <- 0.5 #rate at which vaccine induced immunity wanes
+rho <- 0.001 #rate at which vaccine induced immunity wanes
 
 ###############
 ## run model ##
@@ -108,9 +108,9 @@ out <- as.data.frame(x$run(t))
 
 #toc()
 plot(out$`vS[48]`/(out$`N_pop[48]`), type = "l")
+plot(out$Vtot, type = "l")
 
-incidence <- sum(new_infections[(last_imp + 360) : (last_imp + 10*360)]) +
-  sum(new_reinfections[(last_imp + 360) : (last_imp + 10*360)])
+incidence <- sum(out$total_incidence[(last_imp + 360) : (last_imp + 10*360)])
 
 output <- sum(out$I_1[(last_imp + 360) : (last_imp + 10*360)]) +
   reduced_shed * sum(out$I_2[(last_imp + 360) : (last_imp + 10*360)]) +
