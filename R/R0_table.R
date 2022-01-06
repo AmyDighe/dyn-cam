@@ -17,7 +17,8 @@ foi_to_R0_simple <- function(beta_vector, foi_vector, foi_cat, duration_infectio
   interpol_beta <- approx(x = foi_vector, y = beta_vector,
                           xout = foi_cat, method = "linear")
   R0 <- interpol_beta$y * duration_infection
-  return(R0)
+  return(list(R0 = R0,
+              beta = interpol_beta$y))
 }
 
 R0_table <- function(beta_vector, foi_vector, duration_infection){
@@ -36,6 +37,17 @@ R0_table <- function(beta_vector, foi_vector, duration_infection){
                                                       duration_infection))
   return(R0_tab)
 }
+
+mean_foi_MSIRS_75_90_92 <- readRDS("results/mean_foi_MSIRS_75_90_92.rds")
+
+beta_esti$beta <- foi_to_R0_simple(beta_list[[1]], mean_foi_MSIRS_75_90_92,
+                              foi_cat = foi_target_daily_ordered, 14)
+
+R0_MSIRS_75_90_92 <- R0_table(beta_vector = beta_list[[1]], 
+                              mean_foi_MSIRS_75_90_92,
+                              14) # suggests 0.25, 0.5 and 1 is a good 3 to try
+
+
 
 R0_MSIS1 <- R0_table(beta_vector_MSIS1, mean_foi_MSIS1, 14)
 R0_MSIS2 <- R0_table(beta_vector_MSIS2, mean_foi_MSIS2, 14)
