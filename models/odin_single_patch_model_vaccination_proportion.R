@@ -19,22 +19,22 @@ N_age <- 49 #number of age classes
 ################
 ## birth rate ##
 ################
-alpha <- user(0.0006)
+alpha <- user()
 
 #############################
 ## infection rates S --> I ##
 #############################
-beta <- user(0.3) #base rate
+beta <- user() #base rate
 
 # adjustment of beta values
 mAb_susc <- user(0) # proportion of susceptibility experienced if maternal antibodies (mAbs) present
 v_mAb_susc <- user(0) # proportion of susceptibility experienced if vaccinated AND maternal antibodies (mAbs) present
-Ab_susc <- user(1) # proportion of susceptibility experienced if previously infected
-v_susc <- user(1) # proportion of susceptibility experienced if vaccinated (and naive to natural infection)
-v_Ab_susc <- user(1) # proportion of susceptibility experienced if vaccinated AND previously infected
-reduced_shed <- user(1) # proportion of infectiousness seen in reinfections. default = no difference
-v_reduced_shed <- user(1) # proportion of infectiousness seen in vaccinated first infections
-v_shed <- user(1) # proportion of infectiousness seen in vaccinated reinfections
+Ab_susc <- user() # proportion of susceptibility experienced if previously infected
+v_susc <- user() # proportion of susceptibility experienced if vaccinated (and naive to natural infection)
+v_Ab_susc <- user() # proportion of susceptibility experienced if vaccinated AND previously infected
+reduced_shed <- user() # proportion of infectiousness seen in reinfections. default = no difference
+v_reduced_shed <- user() # proportion of infectiousness seen in vaccinated first infections
+v_shed <- user() # proportion of infectiousness seen in vaccinated reinfections
 
 # frequency dependent rate of infection
 update(rate_infection) <- (beta * sum(I[1:N_age]) + beta * reduced_shed * sum(I2[1:N_age]) + beta * v_shed * sum(vI[1:N_age]) + beta * v_reduced_shed * sum(vI2[1:N_age]))/sum(N[1:N_age])
@@ -48,11 +48,11 @@ rate_reinfection_vaccinated <- rate_infection * v_Ab_susc
 ## mortality rates ##
 #####################
 # user-defined age-dependent mortality rate
-mu_1st_yr <- user(0.0005) # death rate for 1st year of life
-mu_2nd_yr <- user(0.0005) # death rate for 2nd year of life
-mu_3rd_yr <- user(0.00025) # death rate for 3rd year of life
-mu_4th_yr <- user(0.00025) # death rate for 4th year of life
-mu_adult_over_4 <- user(0.00025) # death rate in adulthood (>4 years)
+mu_1st_yr <- user() # death rate for 1st year of life
+mu_2nd_yr <- user() # death rate for 2nd year of life
+mu_3rd_yr <- user() # death rate for 3rd year of life
+mu_4th_yr <- user() # death rate for 4th year of life
+mu_adult_over_4 <- user() # death rate in adulthood (>4 years)
 # expand these across the age strata
 mu[1:12] <- mu_1st_yr
 mu[13:24] <- mu_2nd_yr
@@ -69,14 +69,14 @@ v_gamma <- user(1/14)
 ####################################################
 ## rate at which complete immunity wanes R --> S2 ## 
 ####################################################
-sigma <- user(0.0005) # (/day) to be taken from catalytic work eventually
-v_sigma <- user(0.0005)
+sigma <- user() # (/day) to be taken from catalytic work eventually
+v_sigma <- user()
 
 ###############################################################
 ## rate at which maternally-acquired immunity wanes Sm --> S ##
 ###############################################################
-sigma_m <- user(0.006) # (/day) to be taken from catalytic work eventually
-v_sigma_m <- user(0.006)
+sigma_m <- user() # (/day) to be taken from catalytic work eventually
+v_sigma_m <- user()
 
 ###########################
 ## proportion vaccinated ##
@@ -86,7 +86,7 @@ vaxp[] <- user()
 ##################################################
 ## rate at which vaccine induced immunity wanes ##
 ##################################################
-rho <- user(0.001) #(/day) to be varied as currently unknown
+rho <- user() #(/day) to be varied as currently unknown
 
 ##############################################################################################################
 # CONVERTING THESE RATES --> PROBABILITIES
@@ -270,7 +270,7 @@ new_vI2[1:N_age] <- vI2[i] - outflow_vI2[i] + v_new_reinfections[i]
 
 ## STEP 2 update with ageing & vaccination
 
-vax[1:N_age] <- if(tt > (imp_t[5] + 360)) vaxp[i] else 0
+vax[1:N_age] <- if(tt > (5999)) vaxp[i] else 0
 
 update(Sm[1]) <- if(tt %% 30 == 0) 0 else new_Sm[1]
 update(Sm[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_Sm[i - 1]) else new_Sm[i]
@@ -425,7 +425,7 @@ output(vI_2) <- sum(vI2[1:N_age]) # individuals infectious for the 2nd+ time
 output(N_pop[1:N_age]) <- N[i]
 
 output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:N_age]) # total number of susceptible individuals
-output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) # total number of infectious individuals
+output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) + sum(vI[1:N_age]) + sum(vI2[1:N_age]) # total number of infectious individuals
 output(Vtot) <- sum(vSm[1:N_age]) + sum(vS[1:N_age]) + sum(vI[1:N_age]) + sum(vR[1:N_age]) + sum(vS2[1:N_age]) + sum(vI2[1:N_age])
 output(Ntot) <- sum(N[1:N_age]) # total number of individuals
 
