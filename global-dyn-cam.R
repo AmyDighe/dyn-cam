@@ -28,19 +28,17 @@ duration_mAB_cat <- 1/4.42
 # for grid for MSISI
 waning <- 1/c(duration_Ab_cat*360, 5 *360, 2*360)
 
-# setting up grid for MSIRSIR single patch model
-waning <- 1/c(30, 30*3, 30*6)
+# setting up grid for persistance analysis
+waning <- 1/c(30, 30*3)
 seasonality <- c(0, 0.5, 1)
-beta <- c(0.25, 0.5, 1.4) # corresponding to foi of 0.35, 1, 3.5 under baseline assumptions
+beta <- c(0.25, 0.5, 1)
 pop <- c(c(1,5) %o% 10^(3:7))
-waning_mAb <- 1/c(duration_mAB_cat * 360, 360 * 0.5)
-import_time <- c(89, 179, 269, 359)
+import_time <- c(151, 269)
 
 par_grid <- expand.grid(waning = waning, 
                         seasonality = seasonality, 
                         beta = beta, 
-                        pop = pop, 
-                        waning_mAb = waning_mAb, 
+                        pop = pop,
                         import_time = import_time)
 
 # grid for meta-population model
