@@ -19,17 +19,17 @@ N_age <- 49 #number of age classes
 ################
 ## birth rate ##
 ################
-alpha <- user(0.0006)
+alpha <- user()
 
 #############################
 ## infection rates S --> I ##
 #############################
-beta <- user(0.3) #base rate
+beta <- user() #base rate
 
 # adjusted beta values
-mAb_susc <- user(0) # proportion of susceptibility experienced if maternal antibodies (mAbs) present
-Ab_susc <- user(1) # proportion of susceptibility experienced if previously infected
-reduced_shed <- user(1) # proportion of shedding/infectiousness seen in reinfections. default = no difference
+mAb_susc <- user() # proportion of susceptibility experienced if maternal antibodies (mAbs) present
+Ab_susc <- user() # proportion of susceptibility experienced if previously infected
+reduced_shed <- user() # proportion of shedding/infectiousness seen in reinfections. default = no difference
 
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
@@ -56,17 +56,17 @@ mu[N_age] <- mu_adult_over_4
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection
 ###########################
-gamma <- user(0.05) # (/day) 
+gamma <- user(1/14) # (/day) 
 
 ####################################################
 ## rate at which complete immunity wanes R --> S2 ## 
 ####################################################
-sigma <- user(0.0005) # (/day) to be taken from catalytic work eventually
+sigma <- user() # (/day) to be taken from catalytic work eventually
 
 ###############################################################
 ## rate at which maternally-acquired immunity wanes Sm --> S ##
 ###############################################################
-sigma_m <- user(0.006) # (/day) to be taken from catalytic work eventually
+sigma_m <- user() # (/day) to be taken from catalytic work eventually
 
 ##############################################################################################################
 # CONVERTING THESE RATES --> PROBABILITIES
