@@ -26,27 +26,26 @@ R0_table <- function(beta_vector, foi_vector, duration_infection){
                          R0 = foi_to_R0_simple(beta_vector,
                                                 foi_vector,
                                                 foi_target_daily,
-                                                duration_infection),
+                                                duration_infection)$R0,
                           R0_lower = foi_to_R0_simple(beta_vector,
                                                       foi_vector,
                                                       foi_lower_daily,
-                                                      duration_infection),
+                                                      duration_infection)$R0,
                           R0_upper = foi_to_R0_simple(beta_vector,
                                                       foi_vector,
                                                       foi_upper_daily,
-                                                      duration_infection))
+                                                      duration_infection)$R0)
   return(R0_tab)
 }
 
-mean_foi_MSIRS_75_90_92 <- readRDS("results/mean_foi_MSIRS_75_90_92.rds")
 
-beta_esti$beta <- foi_to_R0_simple(beta_list[[1]], mean_foi_MSIRS_75_90_92,
-                              foi_cat = foi_target_daily_ordered, 14)
+# combine CrI and central values into one column for comparison table
 
-R0_MSIRS_75_90_92 <- R0_table(beta_vector = beta_list[[1]], 
-                              mean_foi_MSIRS_75_90_92,
-                              14) # suggests 0.25, 0.5 and 1 is a good 3 to try
-
+R0_col <- function(R0){
+  R0[2:4] <- round(R0[2:4], digits = 2)
+  output <- paste(R0$R0," (", R0$R0_lower, ", ", R0$R0_upper, ")", sep = "")
+  return(output)
+}
 
 
 R0_MSIS1 <- R0_table(beta_vector_MSIS1, mean_foi_MSIS1, 14)
@@ -71,13 +70,6 @@ saveRDS(file = "results/R0/R0_MSIRS3.rds", R0_MSIRS3)
 saveRDS(file = "results/R0/R0_MSIRS5.rds", R0_MSIRS5)
 saveRDS(file = "results/R0/R0_comb.rds", R0_comb)
 
-# combine CrI and central values into one column for comparison table
-
-R0_col <- function(R0){
-  R0[2:4] <- round(R0[2:4], digits = 2)
-  output <- paste(R0$R0," (", R0$R0_lower, ", ", R0$R0_upper, ")", sep = "")
-  return(output)
-}
 
 R0_comp <- data.frame(study = R0_MSIRS1$study,
                       region = REGION_1,
@@ -94,3 +86,38 @@ R0_comp <- data.frame(study = R0_MSIRS1$study,
 
 R0_comp_order <- R0_comp[order(R0_comp$region),]
 write.csv(file = "results/R0/R0_table.csv", R0_comp_order)
+
+
+
+#### UPDATED
+
+mean_foi_MSIRS_75_90_92 <- readRDS("results/test_mean_foi_MSIRS_75_90_92.rds")
+mean_foi_MSIS_100_1_92 <- readRDS("results/test_mean_foi_MSIS_100_1_92.rds")
+
+beta_esti_MSIRS_75_90_92 <- foi_to_R0_simple(beta_list[[1]], mean_foi_MSIRS_75_90_92,
+                                   foi_cat = foi_target_daily_ordered, 14)
+
+R0_MSIRS_75_90_92 <- R0_table(beta_vector = beta_list[[1]], 
+                              mean_foi_MSIRS_75_90_92,
+                              14) # suggests 0.25, 0.5 and 1 is a good 3 to try
+R0_MSIS_100_1_92 <- R0_table(beta_vector = beta_list[[2]], 
+                              mean_foi_MSIS_100_1_92,
+                              14) # suggests 0.25, 0.5 and 1 is a good 3 to try
+
+# plot beta against FOI for core results and show selection of 0.25, 0.50, 1.00
+plot_dat <- data.frame(beta = beta_esti_MSIRS_75_90_92$beta, study = 1:23)
+
+ggplot(plot_dat)+
+  geom_point(aes(x = study, y = beta))+
+  theme_minimal()+
+  geom_hline(yintercept = c(0.25, 0.5, 1.0), col = "red", lty = 2)+
+  theme(text = element_text(size = 20))
+
+# create table of results so far for slides 11/01/22
+
+R0_comp <- data.frame(study = R0_MSIRS_75_90_92$study,
+                      region = REGION_1,
+                      MSIRS_75_90_92 = R0_col(R0_MSIRS_75_90_92),
+                      MSIS_100_1_92 = R0_col(R0_MSIS_100_1_92))
+R0_comp_order <- R0_comp[order(R0_comp$region),]
+write.csv(file = "results/R0/R0_table_core.csv", R0_comp_order)
