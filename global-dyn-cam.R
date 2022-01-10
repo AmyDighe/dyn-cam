@@ -42,19 +42,19 @@ par_grid <- expand.grid(waning = waning,
                         import_time = import_time)
 
 # grid for meta-population model
-waning_meta <- 1/90
-seasonality_meta <- c(0, 1)
-waning_mAb_meta <- 1/(duration_mAB_cat * 360)
-import_time_meta <- 271
-connectivity <- c(0.01, 0.1, 1)
-
-par_grid_metapop <- expand.grid(waning = waning_meta, 
-                        seasonality = seasonality_meta, 
-                        beta = beta, 
-                        pop = pop, 
-                        waning_mAb = waning_mAb_meta, 
-                        import_time = import_time_meta,
-                        connectivity = connectivity)
+# waning_meta <- 1/90
+# seasonality_meta <- c(0, 1)
+# waning_mAb_meta <- 1/(duration_mAB_cat * 360)
+# import_time_meta <- 271
+# connectivity <- c(0.01, 0.1, 1)
+# 
+# par_grid_metapop <- expand.grid(waning = waning_meta, 
+#                         seasonality = seasonality_meta, 
+#                         beta = beta, 
+#                         pop = pop, 
+#                         waning_mAb = waning_mAb_meta, 
+#                         import_time = import_time_meta,
+#                         connectivity = connectivity)
 
 beta_list <- list(MSIRS_75_90_92 = seq(0.08, 3.6, by = 0.05),
                   MSIS_100_1_92 = seq(0.08, 3.0, by = 0.05),
@@ -65,3 +65,7 @@ beta_list <- list(MSIRS_75_90_92 = seq(0.08, 3.6, by = 0.05),
                  MSIRS_75_90_10 = seq(0.08, 1.8, by = 0.05),
                  MSIS_75_1_10 = seq(0.08, 1.05, by = 0.05),
                  MSIRS_100_90_10 = seq(0.08, 1.8, by = 0.05))
+
+
+REGION_1 <- c("South_Asia",rep("Africa", 3), rep("Middle_East", 4), rep("Africa", 3), rep("Middle_East", 5),
+              rep("South_Asia", 2), rep("Africa", 3), "Middle_East", "Africa")
