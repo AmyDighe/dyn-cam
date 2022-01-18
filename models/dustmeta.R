@@ -161,12 +161,12 @@ p_S2[ , , ] <- 1 - exp(- (rate_reinfection[j, k] + mu[i]))
 p_I2[] <- 1 - exp(- (gamma + mu[i])) 
 
 # outflows due to infection, recovery or death
-outflow_Sm[ , , ] <- rbinom(Sm[i, j, k], prob = p_Sm[i, j, k])
-outflow_S[ , , ] <- rbinom(S[i, j, k], prob = p_S[i, j, k])
-outflow_I[ , , ] <- rbinom(I[i, j, k], prob = p_I[i])
-outflow_R[ , , ] <- rbinom(R[i, j, k], prob = p_R[i])
-outflow_S2[ , , ] <- rbinom(S2[i, j, k], prob = p_S2[i, j, k])
-outflow_I2[ , , ] <- rbinom(I2[i, j, k], prob = p_I2[i])
+outflow_Sm[ , , ] <- rbinom(Sm[i, j, k], p_Sm[i, j, k])
+outflow_S[ , , ] <- rbinom(S[i, j, k], p_S[i, j, k])
+outflow_I[ , , ] <- rbinom(I[i, j, k], p_I[i])
+outflow_R[ , , ] <- rbinom(R[i, j, k], p_R[i])
+outflow_S2[ , , ] <- rbinom(S2[i, j, k], p_S2[i, j, k])
+outflow_I2[ , , ] <- rbinom(I2[i, j, k], p_I2[i])
 
 
 ###############################################################################################################
@@ -189,13 +189,13 @@ norm_p_gamma[] <- p_gamma/(p_gamma + p_mu[i])
 norm_p_sigma[] <- p_sigma/(p_sigma + p_mu[i])
 
 # number of new infections, recoveries and newly susceptible
-new_waned_mAb[ , , ] <- rbinom(outflow_Sm[i, j, k], prob = norm_p_sigma_m[i, j, k])
-new_infections_mAb[ , , ] <- rbinom(outflow_Sm[i, j, k], prob = norm_p_infection_mAb[i, j, k])
-new_infections[ , , ] <- rbinom(outflow_S[i, j, k], prob = norm_p_infection[i, j, k])
-new_recoveries[ , , ] <- rbinom(outflow_I[i, j, k], prob = norm_p_gamma[i])
-new_waned[ , , ] <- rbinom(outflow_R[i, j, k], prob = norm_p_sigma[i])
-new_reinfections[ , , ] <- rbinom(outflow_S2[i, j, k], prob = norm_p_reinfection[i, j, k])
-new_recoveries_two[ , , ] <- rbinom(outflow_I2[i, j, k], prob = norm_p_gamma[i])
+new_waned_mAb[ , , ] <- rbinom(outflow_Sm[i, j, k], norm_p_sigma_m[i, j, k])
+new_infections_mAb[ , , ] <- rbinom(outflow_Sm[i, j, k], norm_p_infection_mAb[i, j, k])
+new_infections[ , , ] <- rbinom(outflow_S[i, j, k], norm_p_infection[i, j, k])
+new_recoveries[ , , ] <- rbinom(outflow_I[i, j, k], norm_p_gamma[i])
+new_waned[ , , ] <- rbinom(outflow_R[i, j, k], norm_p_sigma[i])
+new_reinfections[ , , ] <- rbinom(outflow_S2[i, j, k], norm_p_reinfection[i, j, k])
+new_recoveries_two[ , , ] <- rbinom(outflow_I2[i, j, k], norm_p_gamma[i])
 
 ###################
 ## birth process ##
@@ -209,7 +209,7 @@ pi <- 3.14159 # odin doesn't have pi
 N_0 <- user(1000) # user-defined initial population size per patch
 birth_rate <- N_0 * alpha * (1 + (delta * (cos(2 * pi * tt / 360)))) # N_0 is the initial patch population size
 new_births[ , ] <- rpois(birth_rate) #per day per patch
-births_protected[ , ] <- rbinom(new_births[i, j], prob = seropoz_A4[i, j]) # protected by mAbs, patch specific
+births_protected[ , ] <- rbinom(new_births[i, j], seropoz_A4[i, j]) # protected by mAbs, patch specific
 births_not_protected[ , ] <- new_births[i, j] - births_protected[i, j] #  NOT protected by mAbs, patch specific
 
 #########################
