@@ -21,9 +21,6 @@ AUC_seropos <- area_under_curve(x = (vl_data%>%filter(group == "seropositive"))$
                                 y = (vl_data%>%filter(group == "seropositive"))$y,
                                 method = "trapezoid")
 
-AUC_seropos/AUC_seroneg # 1/92
-
-
 AUC_vax_seroneg <- area_under_curve(x = (vl_data%>%filter(group == "seronegative_vax"))$x,
                                  y = (vl_data%>%filter(group == "seronegative_vax"))$y,
                                  method = "trapezoid")
@@ -31,5 +28,31 @@ AUC_vax_seropos<- area_under_curve(x = (vl_data%>%filter(group == "seropositive_
                                    y = (vl_data%>%filter(group == "seropositive_vax"))$y,
                                    method = "trapezoid")
 
-AUC_vax_seropos/AUC_seropos # 0.1267937
-AUC_vax_seroneg/AUC_seroneg
+redshed_inf <- AUC_seropos/AUC_seroneg # seropositivity reduces shedding by 92x 
+v_redshed_if_seropos <- AUC_vax_seropos/AUC_seropos # vax seropositive animals reduces their shedding by around 8x
+redshed_v_pos_cf_v_neg <- AUC_vax_seropos/AUC_vax_seroneg # vax reduces shedding 1000x more in animals that are already seropositive cf seronegative animals
+v_redshed_if_seroneg <- AUC_vax_seroneg/AUC_seroneg #  vaccine does not reduce shedding in seronegative animals
+redshed_if_vax_and_inf <- AUC_vax_seropos/AUC_seroneg # vaccination and seropositivity reduces shedding by ~724x compared to unvaccinated naive animals
+redshed_vax_neg_cf_unvax_pos <- AUC_vax_seroneg/AUC_seropos #infection alone is 126x better at reducing shed than vaccination alone
+
+## what about log AUC values?
+
+logAUC_seroneg <- area_under_curve(x = (vl_data%>%filter(group == "seronegative"))$x,
+                                y = log((vl_data%>%filter(group == "seronegative"))$y),
+                                method = "trapezoid")
+logAUC_seropos <- area_under_curve(x = (vl_data%>%filter(group == "seropositive"))$x,
+                                y = log((vl_data%>%filter(group == "seropositive"))$y),
+                                method = "trapezoid")
+
+logAUC_vax_seroneg <- area_under_curve(x = (vl_data%>%filter(group == "seronegative_vax"))$x,
+                                    y = log((vl_data%>%filter(group == "seronegative_vax"))$y),
+                                    method = "trapezoid")
+logAUC_vax_seropos<- area_under_curve(x = (vl_data%>%filter(group == "seropositive_vax"))$x,
+                                   y = log((vl_data%>%filter(group == "seropositive_vax"))$y),
+                                   method = "trapezoid")
+logredshed_inf <- logAUC_seropos/logAUC_seroneg # seropositivity reduces shedding by 2x 
+logv_redshed_if_seropos <- logAUC_vax_seropos/logAUC_seropos # vax seropositive animals reduces their shedding by around 1.5x
+logredshed_v_pos_cf_v_neg <- logAUC_vax_seropos/logAUC_vax_seroneg # vax reduces shedding 3x more in animals that are already seropositive cf seronegative animals
+logv_redshed_if_seroneg <- logAUC_vax_seroneg/logAUC_seroneg #  vaccine does not reduce shedding in seronegative animals
+logredshed_if_vax_and_inf <- logAUC_vax_seropos/logAUC_seroneg # vaccination and seropositivity reduces shedding by ~3x compared to unvaccinated naive animals
+logredshed_vax_neg_cf_unvax_pos <- logAUC_vax_seroneg/logAUC_seropos #infection alone is 2x better at reducing shed than vaccination alone
