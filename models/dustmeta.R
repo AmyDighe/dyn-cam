@@ -113,17 +113,17 @@ mu[] <- user() # user-defined age-dependent mortality rate
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection
 ###########################
-gamma <- user(0.05) # (/day) 
+gamma <- user(1/14) # (/day) 
 
 ####################################################
 ## rate at which complete immunity wanes R --> S2 ## 
 ####################################################
-sigma <- user(0.0005) # (/day) to be taken from catalytic work eventually
+sigma <- user() # (/day) to be taken from catalytic work eventually
 
 ###############################################################
 ## rate at which maternally-acquired immunity wanes Sm --> S ##
 ###############################################################
-sigma_m <- user(0.006) # (/day) to be taken from catalytic work eventually
+sigma_m <- user() # (/day) to be taken from catalytic work eventually
 
 ##############################################################################################################
 # CONVERTING THESE RATES --> PROBABILITIES
@@ -216,7 +216,7 @@ births_not_protected[ , ] <- new_births[i, j] - births_protected[i, j] #  NOT pr
 ## importation process ##
 #########################
 
-importation_rate <- user(0.01) # should be proportional to population size?
+importation_rate <- user() # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
 imp_t[] <- user() # a user defined time at which cases are imported
 
@@ -273,6 +273,8 @@ update(I2[N_age, , ]) <- if(tt %% 30 == 0) new_I2[i - 1, j, k] + new_I2[i, j, k]
 
 update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning to work
 
+update(Itot) <- sum(I[ , , ]) + sum(I2[ , , ])
+
 ## record total population size for use in FOI
 N[ , , ] <- Sm[i, j, k] + S[i, j, k] + I[i, j, k] + R[i, j, k] + S2[i, j, k] + I2[i, j, k]
 ## record adult seroprevalence for use in births_protected
@@ -297,6 +299,7 @@ initial(S2[ , , ]) <- 0
 initial(I2[ , , ]) <- 0
 
 initial(tt) <- 1
+initial(Itot) <- 0
 
 ##################################################################################################################################
 

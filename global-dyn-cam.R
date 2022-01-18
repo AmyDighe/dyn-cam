@@ -32,7 +32,7 @@ waning <- 1/c(duration_Ab_cat*360, 5 *360, 2*360)
 waning <- 1/c(30, 30*3)
 seasonality <- c(0, 0.5, 1)
 beta <- c(0.25, 0.5, 1)
-pop <- c(c(1,5) %o% 10^(3:7))
+pop <- c(c(1,5) %o% 10^(3:6))
 import_time <- c(151, 269)
 
 par_grid <- expand.grid(waning = waning, 
@@ -41,20 +41,28 @@ par_grid <- expand.grid(waning = waning,
                         pop = pop,
                         import_time = import_time)
 
+# for finding point of bifurcation
+par_grid_bifurc <- expand.grid(waning = waning[2], 
+                        seasonality = seasonality[2:3], 
+                        beta = c(0.2, 0.3, 0.35, 0.4, 0.45, 1.5), 
+                        pop = pop,
+                        import_time = import_time[1])
+
+# for finding the critical community size
+par_grid_cc_fine <- expand.grid(waning = waning[2], 
+                               seasonality = seasonality, 
+                               beta = c(0.25, 0.5, 1.0, 1.5), 
+                               pop = c(c(1,2.5,5,7.5) %o% 10^(3:4), c(1,5) %o% 10^(5:6)),
+                               import_time = import_time)
+
 # grid for meta-population model
-# waning_meta <- 1/90
-# seasonality_meta <- c(0, 1)
-# waning_mAb_meta <- 1/(duration_mAB_cat * 360)
-# import_time_meta <- 271
-# connectivity <- c(0.01, 0.1, 1)
-# 
-# par_grid_metapop <- expand.grid(waning = waning_meta, 
-#                         seasonality = seasonality_meta, 
-#                         beta = beta, 
-#                         pop = pop, 
-#                         waning_mAb = waning_mAb_meta, 
-#                         import_time = import_time_meta,
-#                         connectivity = connectivity)
+ connectivity <- c(0.001, 0.01, 0.1)
+
+par_grid_metapop <- expand.grid(waning = waning[2],
+                        seasonality = seasonality,
+                        beta = beta,
+                        pop = pop/25,
+                        import_time = import_time[1])
 
 beta_list <- list(MSIRS_75_90_92 = seq(0.08, 3.6, by = 0.05),
                   MSIS_100_1_92 = seq(0.08, 3.0, by = 0.05),

@@ -2,7 +2,7 @@
 ###############################################################
 ## stochastic initialisation at rough zoographic equilibrium ##
 ###############################################################
-stoch_init <- function(alpha, delta, N_0, mu, N_age, N_patch){
+stoch_init <- function(alpha, delta, N_0, mu, N_age, n_r, n_c){
 
 births_detr <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * seq(1:360) / 360))))
 births_det <- vector(length = length(births_detr)) 
@@ -51,7 +51,7 @@ for(i in 1:N_age){
   S_ini_p[i] <- round((S_ini[i] / sum(S_ini[1:N_age])) * N_0)
 }
 # expanding out for all patches
-S_ini_m <- matrix(S_ini_p, nrow = length(S_ini_p), ncol = N_patch) 
+S_ini_a <- array(S_ini_p, dim = c(N_age, n_r, n_c)) 
 
-return(S_ini_m)
+return(S_ini_a)
 }
