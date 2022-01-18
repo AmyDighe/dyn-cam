@@ -113,7 +113,7 @@ for(i in 1:(dim(par_grid)[1])){
 d <- readRDS("results/persist_estab_period_sp.rds")
 results <- cbind(d, par_grid)
 results <- results %>% mutate(persist_estab = 100 * persist/estab)
-results$persist_estab[is.nan(results$persist_estab)]<-0
+#results$persist_estab[is.nan(results$persist_estab)]<-0
 
 waning.labs <- c("\U03C3 = 30 days", "\U03C3 = 90 days")
 names(waning.labs) <- unique(par_grid$waning)

@@ -71,8 +71,8 @@ ind2 <- rep(ind2, 4)
 scenario <- names(beta_list)
 last_imp <- imp_t[5]
 
-for(j in 1:9){
-  j = 7
+for(j in 3:4){
+  
   Ab_susc <- Ab_susc_v[j]
   sigma <- sigma_v[j]
   reduced_shed <- reduced_shed_v[j]
@@ -121,3 +121,4 @@ print(paste("i =", i, "foi= ", mean_foi[i], sep = " ")) }
 saveRDS(file = paste("results/test_mean_foi_", scenario[j], ".rds", sep = ""), object = mean_foi)
 
 }
+ 
