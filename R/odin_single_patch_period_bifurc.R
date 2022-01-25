@@ -57,7 +57,7 @@ for(i in 1:(dim(par_grid_bifurc)[1])){
     if(persist[i] > 1){
       for(j in 1:(persist[i])){
         ACF <- acf(out_persist[m_t:p_t, j], lag.max = 360*5, plot = FALSE)
-        acf_df <- data.frame(acf = ACF$acf[100:(360*5)], lag = ACF$lag[100:(360*5)])
+        acf_df <- data.frame(acf = ACF$acf[150:(360*5)], lag = ACF$lag[150:(360*5)])
         period[j] <- acf_df[which.max(acf_df$acf), ]$lag 
       } 
       period_av[i] <- mean(period)
@@ -66,7 +66,7 @@ for(i in 1:(dim(par_grid_bifurc)[1])){
       
     } else if(persist[i] == 1) {
       ACF <- acf(out_persist[m_t:p_t], lag.max = 360*5, plot = FALSE)
-      acf_df <- data.frame(acf = ACF$acf[100:(360*5)], lag = ACF$lag[100:(360*5)])
+      acf_df <- data.frame(acf = ACF$acf[150:(360*5)], lag = ACF$lag[150:(360*5)])
       period <- acf_df[which.max(acf_df$acf), ]$lag 
       
       period_av[i] <- period
@@ -112,7 +112,7 @@ for(i in 1:(length(pop_og))){
 
       for(j in 1:(persist[i])){
         ACF <- acf(out_persist[m_t:p_t, j], lag.max = 360*5, plot = FALSE)
-        acf_df <- data.frame(acf = ACF$acf[100:(360*5)], lag = ACF$lag[100:(360*5)])
+        acf_df <- data.frame(acf = ACF$acf[150:(360*5)], lag = ACF$lag[150:(360*5)])
         # write something in here about making sure acf is above the significance level
         period[j,i] <- acf_df[which.max(acf_df$acf), ]$lag 
     }
@@ -181,7 +181,7 @@ ggsave(filename = "results/persistence/periodicity_alternative.png")
     period <- vector(length = length(persisted))
     for(j in 1:(persisted)){
       ACF <- acf(out_persist[m_t:p_t, j], lag.max = 360*5, plot = FALSE)
-      acf_df <- data.frame(acf = ACF$acf[100:(360*5)], lag = ACF$lag[100:(360*5)])
+      acf_df <- data.frame(acf = ACF$acf[150:(360*5)], lag = ACF$lag[150:(360*5)])
       # write something in here about making sure acf is above the significance level
       period[j] <- acf_df[which.max(acf_df$acf), ]$lag 
     }
