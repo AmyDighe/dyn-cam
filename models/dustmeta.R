@@ -23,23 +23,23 @@ nc <- user(5, min = 3) # number of cols in grid of sub-pops
 ################
 ## birth rate ##
 ################
-alpha <- user(0.0006)
+alpha <- user()
 
 #############################
 ## infection rates S --> I ##
 #############################
-beta <- user(0.3) #base rate
+beta <- user() #base rate
 
 # adjusted beta values
-mAb_susc <- user(0) # proportion of susceptibility experienced if maternal antibodies (mAbs) present
-Ab_susc <- user(1) # proportion of susceptibility experienced if previously infected
-reduced_shed <- user(1) # proportion of shedding/infectiousness seen in reinfections. default = no difference
+mAb_susc <- user() # proportion of susceptibility experienced if maternal antibodies (mAbs) present
+Ab_susc <- user() # proportion of susceptibility experienced if previously infected
+reduced_shed <- user() # proportion of shedding/infectiousness seen in reinfections. default = no difference
 
 ###############################
 ## meta-population structure ##
 ###############################
 
-connectivity <- user(0.05) ##connection strength between patches (0<x<1)
+connectivity <- user() ##connection strength between patches (0<x<1)
 
 ## with edge effects
 
@@ -98,12 +98,17 @@ external_I2[2:(nr - 1), 2:(nc - 1)] <-
 # correction_ex[,] <- user()
 # correction_int[,] <- 1 - correction_ex[i ,j]
 
+# background foi for introduction
+foi_bg_usr <- user()
+foi_bg <- if(tt < 3600) foi_bg_usr else 0 # corresponds to 5 new infections per 1000 susceptible individuals per year
+
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
 rate_infection[ , ] <- beta * (sum(I[ , i, j]) / sum(N[ , i, j]))  + 
   beta * reduced_shed * (sum(I2[ , i, j]) / sum(N[ , i, j])) +
   beta * connectivity * external_I1[i, j] + 
-  beta * reduced_shed * connectivity * external_I2[i, j]
+  beta * reduced_shed * connectivity * external_I2[i, j] + 
+  foi_bg
 
 rate_infection_mAb[ , ] <- mAb_susc * rate_infection[i, j]
 rate_reinfection[ , ] <- Ab_susc * rate_infection[i, j]
@@ -254,13 +259,13 @@ update(Sm[2:48, , ]) <- if(tt %% 30 == 0) new_Sm[i - 1, j, k] else new_Sm[i, j, 
 update(Sm[N_age, , ]) <- if(tt %% 30 == 0) new_Sm[i - 1, j, k] + new_Sm[i, j, k] else new_Sm[i, j, k]
 
 update(S[1, , ]) <- if(tt %% 30 == 0) 0 else new_S[1, j, k]
-update(S[2:48, , ]) <- if(tt %% 30 == 0) new_S[i-1, j, k] else new_S[i, j, k]
-update(S[N_age, , ]) <- if(tt %% 30 == 0) new_S[i-1, j, k] + new_S[i, j, k] else new_S[i, j, k]
+update(S[2:48, , ]) <- if(tt %% 30 == 0) new_S[i - 1, j, k] else new_S[i, j, k]
+update(S[N_age, , ]) <- if(tt %% 30 == 0) new_S[i - 1, j, k] + new_S[i, j, k] else new_S[i, j, k]
 
 update(I[1 , , ]) <-  if(tt %% 30 == 0) 0 else new_I[1, j, k]
-update(I[2:48, , ]) <- if(tt %% 30 == 0) new_I[i-1, j, k] else new_I[i, j, k]
-update(I[25, nr - 2, nc - 2]) <- if(tt %% 30 == 0) new_I[i-1, j, k] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 5 + new_I[i, j, k] else new_I[i, j, k]
-update(I[N_age, , ]) <- if(tt %% 30 == 0) new_I[i-1, j, k] + new_I[i, j, k] else new_I[i, j, k]
+update(I[2:48, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] else new_I[i, j, k]
+update(I[25, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 1 + new_I[i, j, k] else new_I[i, j, k]
+update(I[N_age, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] + new_I[i, j, k] else new_I[i, j, k]
 
 update(R[1, , ]) <- if(tt %% 30 == 0) 0 else new_R[1, j, k]
 update(R[2:48, , ]) <- if(tt %% 30 == 0) new_R[i - 1, j, k] else new_R[i, j, k]
