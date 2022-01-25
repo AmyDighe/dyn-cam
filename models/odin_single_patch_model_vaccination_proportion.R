@@ -48,17 +48,7 @@ rate_reinfection_vaccinated <- rate_infection * v_Ab_susc
 ## mortality rates ##
 #####################
 # user-defined age-dependent mortality rate
-mu_1st_yr <- user() # death rate for 1st year of life
-mu_2nd_yr <- user() # death rate for 2nd year of life
-mu_3rd_yr <- user() # death rate for 3rd year of life
-mu_4th_yr <- user() # death rate for 4th year of life
-mu_adult_over_4 <- user() # death rate in adulthood (>4 years)
-# expand these across the age strata
-mu[1:12] <- mu_1st_yr
-mu[13:24] <- mu_2nd_yr
-mu[25:36] <- mu_3rd_yr
-mu[37:48] <- mu_4th_yr
-mu[N_age] <- mu_adult_over_4
+mu[] <- user()
 
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection

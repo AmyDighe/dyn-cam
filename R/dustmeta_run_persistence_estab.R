@@ -13,69 +13,27 @@ source("R/stochastic_init.R") # function for starting model at zoographic equili
 ## user defined variables: ##
 #############################
 
-N_age <- 49 # number of age classes
 n_r <- 5 # number of rows in grid of sub-pops
 n_c <- 5 # number of cols in grid of subpops
-
-# input a value for birth rate (per camel per day) 
-alpha <- 0.000565
-
-# input a value for the baseline effective contact rate
-beta <- 0.5
-
-# input a value for the average duration of the infectious period (in days) 
-duration_infection <- 14
-gamma <- 1/duration_infection
-
-# input a value for the average duration of complete immunity following infection (in days) 
-duration_immunity <- 60 # default = 
-sigma <- 1/duration_immunity # default = 
-
-# input a value for the average rate of waning of mAbs
-sigma_m <- 4.42/365 # from the catalytic work
 
 # input a value between 0 and 1 for susceptibility of individuals with mAbs/Abs
 ## 0 would mean mAbs/Abs afford complete protection
 ## 1 would mean mAbs/Abs afford no protection at all
-Ab_susc <- 1 # default = 
-mAb_susc <- 0 # default = 0
+Ab_susc <- 0.75 # default = 
 
 # input value for the proportion of baseline naive infectiousness
 # seen in reinfected animals
 reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
 
-# input values for the age dependent removal rate - balance birthrate
-mu_1st_yr <- 0.0011 # death rate for 1st year of life = 40% removal
-mu_2nd_yr <- 0.0011 # death rate for 2nd year of life
-mu_3rd_yr <- 0.0003603 # death rate for 3rd year of life = 14% removal
-mu_4th_yr <- 0.0003603 # death rate for 4th year of life
-mu_adult_over_4 <- 0.0003603 # death rate in adulthood (>4 years)
-
-mu <- vector(length = N_age)
-mu[1:12] <- mu_1st_yr
-mu[13:24] <- mu_2nd_yr
-mu[25:36] <- mu_3rd_yr
-mu[37:48] <- mu_4th_yr
-mu[N_age] <- mu_adult_over_4
-
-# set importation rate for introducing infectious individuals
-importation_rate <- 0
-
 # if rather than a rate you want importation to occur on a specific day
 imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
-# set a level of seasonality for births 
-# (1 being strongly seasonal, 0 being not at all seasonal)
-delta <-  1 
-
 # set level of connectivity between patches
-connectivity <- 0.05
-
-#initial pop per patch
-N_0 <- 400000
+connectivity <- c(0.01, 0.1, 0.05, 0.001)
 
 ## stochastic initialization
-S_ini_p <- stoch_init(alpha, delta, N_0, mu, N_age, n_r = n_r, n_c = n_c)
+S_ini_p <- stoch_init(alpha, delta = par_grid_metapop$seasonality[1], N_0 = par_grid_metapop$pop[1],
+                      mu, N_age, n_r = n_r, n_c = n_c)
 
 
 ###################
@@ -85,12 +43,18 @@ S_ini_p <- stoch_init(alpha, delta, N_0, mu, N_age, n_r = n_r, n_c = n_c)
 n_particles <- 100L
 
 msirs_model <- msirs_meta_dust$new(pars = list(N_age = N_age, n_r = n_r, n_c = n_c, 
-                                               alpha = alpha, beta = beta, gamma = gamma, 
-                                               sigma = sigma, sigma_m = sigma_m, 
+                                               alpha = alpha, 
+                                               beta = par_grid_metapop$beta[1],
+                                               gamma = gamma, 
+                                               sigma = par_grid_metapop$waning[1],
+                                               sigma_m = sigma_m, 
                                                Ab_susc = Ab_susc, mAb_susc = mAb_susc, 
-                                               reduced_shed = reduced_shed, mu = mu, N_0 = N_0, 
-                                               importation_rate = importation_rate, imp_t = imp_t, 
-                                               delta = delta, connectivity = connectivity, 
+                                               reduced_shed = reduced_shed, mu = mu, 
+                                               N_0 = par_grid_metapop$pop[1], 
+                                               importation_rate = importation_rate, 
+                                               imp_t = imp_t, 
+                                               delta =  par_grid_metapop$seasonality[1], 
+                                               connectivity = connectivity[1], 
                                                S_ini_p = S_ini_p), 
                                    step = 1, 
                                    n_particles = n_particles, 
@@ -112,14 +76,15 @@ estab <- vector(length = (dim(par_grid_metapop)[1]))
 m_persist <- estab
 persist <- estab
 steps <- seq(1, 19710, by = 10)
-connectivity <- 0.01
 
-S_ini_list <- list(length = 10) ## stochastic initialization
-for(i in 1:length(pop)){
-  S_ini_list[[i]] <- stoch_init(alpha, delta, N_0 = unique(par_grid_metapop$pop)[i],
+S_ini_list <- list(length = dim(par_grid_metapop)[1]) ## stochastic initialization
+for(i in 1:(dim(par_grid_metapop)[1])){
+  S_ini_list[[i]] <- stoch_init(alpha, delta = par_grid_metapop$seasonality[i],
+                                N_0 = par_grid_metapop$pop[i],
                                 mu, N_age, n_r = n_r, n_c = n_c)
 }
-names(S_ini_list) <- as.character(unique(par_grid_metapop$pop))
+
+connectivity <- 0.01
 
 for(i in 1:(dim(par_grid_metapop)[1])){
   imp_t <- par_grid_metapop$import_time[i] + (360 * seq(0,4, by = 1))
@@ -135,7 +100,7 @@ for(i in 1:(dim(par_grid_metapop)[1])){
                                        importation_rate = importation_rate, imp_t = imp_t, 
                                        delta = par_grid_metapop$seasonality[i], 
                                        connectivity = connectivity, 
-                                       S_ini_p = S_ini_list[[as.character(par_grid_metapop$pop[i])]]),
+                                       S_ini_p = S_ini_list[[i]]),
                            step = 1)
   
   state <- msirs_model$simulate(steps)
@@ -147,10 +112,10 @@ for(i in 1:(dim(par_grid_metapop)[1])){
   print(i)
 }
 
-saveRDS(file = paste("results/dustmeta_persist", connectivity, ".rds", sep = ""), 
+saveRDS(file = paste("results/persistence/dustmeta_persist2", connectivity, ".rds", sep = ""), 
         object = data.frame(persist = persist, m_persist = m_persist, estab = estab))
 
-d <- readRDS("results/dustmeta_persist0.01.rds")
+d <- readRDS("results/dustmeta_persist20.01.rds")
 results <- cbind(d, par_grid_metapop)
 results <- results %>% mutate(persist_estab = 100 * persist/estab)
 #results$persist_estab[is.nan(results$persist_estab)]<-0

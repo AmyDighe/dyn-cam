@@ -31,9 +31,15 @@ mAb_susc <- user() # proportion of susceptibility experienced if maternal antibo
 Ab_susc <- user() # proportion of susceptibility experienced if previously infected
 reduced_shed <- user() # proportion of shedding/infectiousness seen in reinfections. default = no difference
 
+# background foi for introduction
+foi_bg_usr <- user()
+foi_bg <- if(tt < 3600) foi_bg_usr else 0 # corresponds to 5 new infections per 1000 susceptible individuals per year
+
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
-rate_infection <- beta * (sum(I[1:N_age]) / sum(N[1:N_age]))  + beta * reduced_shed * (sum(I2[1:N_age]) / sum(N[1:N_age])) 
+rate_infection <- beta * (sum(I[1:N_age]) / sum(N[1:N_age]))  + 
+  beta * reduced_shed * (sum(I2[1:N_age]) / sum(N[1:N_age])) +
+  foi_bg
 rate_infection_mAb <- mAb_susc * rate_infection
 rate_reinfection <- Ab_susc * rate_infection
 
@@ -41,17 +47,7 @@ rate_reinfection <- Ab_susc * rate_infection
 ## mortality rates ##
 #####################
 # user-defined age-dependent mortality rate
-mu_1st_yr <- user(0.0005) # death rate for 1st year of life
-mu_2nd_yr <- user(0.0005) # death rate for 2nd year of life
-mu_3rd_yr <- user(0.00025) # death rate for 3rd year of life
-mu_4th_yr <- user(0.00025) # death rate for 4th year of life
-mu_adult_over_4 <- user(0.00025) # death rate in adulthood (>4 years)
-# expand these across the age strata
-mu[1:12] <- mu_1st_yr
-mu[13:24] <- mu_2nd_yr
-mu[25:36] <- mu_3rd_yr
-mu[37:48] <- mu_4th_yr
-mu[N_age] <- mu_adult_over_4
+mu[] <- user()
 
 ###########################
 ## recovery rate I --> R ## where R is non-infectious and completely immune to further infection
@@ -203,7 +199,7 @@ update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] + new_S[i] else new_S[i]
 
 update(I[1]) <-  if(tt %% 30 == 0) 0 else new_I[1]
 update(I[2:24]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
-update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 5 + new_I[i] else new_I[i]
+update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 25 + new_I[i] else new_I[i]
 update(I[26:48]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
 update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] + new_I[i] else new_I[i]
 
@@ -223,7 +219,7 @@ update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning
 
 ## record total population size and seroprevalence in each age group, and in adults >4
 
-update(N[1:N_age]) <- Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i]
+N[] <- Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i]
 
 update(seroprevalence[1:N_age]) <- (I[i] + R[i] + S2[i] + I2[i]) / (Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i])
 
@@ -245,7 +241,7 @@ initial(S2[1:N_age]) <- 0
 initial(I2[1:N_age]) <- 0
 
 initial(tt) <- 1
-initial(N[1:N_age]) <- S_ini_p[i]
+#initial(N[1:N_age]) <- S_ini_p[i]
 initial(seroprevalence[1:N_age]) <- 0
 initial(seropoz_A4) <- 0
 
@@ -301,6 +297,8 @@ output(R_1) <- sum(R[1:N_age]) # individuals recovered from a 1st infection
 output(S_2) <- sum(S2[1:N_age]) # susceptible individuals whose immunity has waned
 output(I_2) <- sum(I2[1:N_age]) # individuals infectious for the 2nd+ time
 
+output(N_pop[1:N_age]) <- N[i]
+
 output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:N_age]) # total number of susceptible individuals
 output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) # total number of infectious individuals
 output(Rtot) <- sum(R[1:N_age]) 
@@ -334,6 +332,7 @@ output(birthrate) <- birth_rate
 output(births) <- new_births
 output(importations) <- imported_cases
 output(yy) <- yr[12]
+output(Se) <- (sum(S[]) + Ab_susc * sum(S2[]))/ sum(N[])
 #output(foi) <- beta * sum(I[1:N_age]) / sum(N[1:N_age]) # foi applying to first infections only
 
 ################################################################################################################################
@@ -398,3 +397,4 @@ dim(N) <- N_age
 dim(ind1) <- 48
 dim(ind2) <- 48
 dim(imp_t) <- 5
+dim(N_pop) <- N_age

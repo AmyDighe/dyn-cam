@@ -6,40 +6,21 @@ sir_model_vax <- odin::odin("models/odin_single_patch_model_vaccination_proporti
 ## customise parameters ##
 ##########################
 
-
-# input a value for birth rate (per camel per day) 
-alpha <- 0.000565
-
 # input a value for the baseline effective contact rate
 beta <- c(0.5, 0.25, 1)
-
-# input a value for the average duration of the infectious period (in days) 
-duration_infection <- 14
-gamma <- 1/duration_infection
 
 # input a value for the average duration of complete immunity following infection (in days) 
 duration_immunity <- 90 # default = 
 sigma <- 1/duration_immunity # default = 
 
-# input a value for the average rate of waning of mAbs
-sigma_m <- 4.42/360 # from the catalytic work
-
 # input a value between 0 and 1 for susceptibility experienced by individuals with mAbs and Abs
 ## 0 would mean mAbs/Abs afford complete protection from MERS (default)
 ## 1 would mean mAbs/Abs afford no protection at all
 Ab_susc <- 0.75 # default = 
-mAb_susc <- 0 # default = 0
 
 # input value for the proportion of baseline naive infectiousness
 # seen in reinfected animals
 reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
-
-# input values for the age dependent removal rate - balance birthrate
-mu_1st_yr <- 0.0011 # death rate for 1st year of life = 40% removal
-mu_2nd_yr <- 0.0011 # death rate for 2nd year of life
-mu_3rd_yr <- 0.0003603 # death rate for 3rd year of life = 14% removal
-mu_4th_yr <- 0.0003603 # death rate for 4th year of life
-mu_adult_over_4 <- 0.0003603 # death rate in adulthood (>4 years)
 
 # input an initial population size
 N_0 <- 1000000
@@ -48,27 +29,11 @@ N_0 <- 1000000
 time_period <- 9601
 t <- seq(0:time_period)
 
-# set importation rate for introducing infectious individuals
-importation_rate <- 0
-
 # if rather than a rate you want importation to occur on a specific day input that day here
 imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
-
-# index for summing births for each age class
-ind1 <- rep(0,12)
-ind2 <- rep(0,12)
-
-for(y in 2:13){
-  ind1[y-1] <- 360 - ((y - 1) * 30) + 1 
-  ind2[y-1] <- 360 - ((y - 2) * 30)
-}
-
-# repeating for 4 years to cover all age classes
-ind1 <- rep(ind1, 4)
-ind2 <- rep(ind2, 4)
 
 # vaccination parameters
 

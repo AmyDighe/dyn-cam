@@ -95,6 +95,9 @@ external_I2[nr, 2:(nc - 1)] <- I2N_patch[1, j - 1] + I2N_patch[1, j + 1] + I2N_p
 external_I2[2:(nr - 1), 2:(nc - 1)] <-
   I2N_patch[i, j + 1] + I2N_patch[i, j - 1] + I2N_patch[i + 1, j] + I2N_patch[i - 1, j]
 
+# correction_ex[,] <- user()
+# correction_int[,] <- 1 - correction_ex[i ,j]
+
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
 rate_infection[ , ] <- beta * (sum(I[ , i, j]) / sum(N[ , i, j]))  + 
