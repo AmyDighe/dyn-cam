@@ -95,8 +95,7 @@ external_I2[nr, 2:(nc - 1)] <- I2N_patch[1, j - 1] + I2N_patch[1, j + 1] + I2N_p
 external_I2[2:(nr - 1), 2:(nc - 1)] <-
   I2N_patch[i, j + 1] + I2N_patch[i, j - 1] + I2N_patch[i + 1, j] + I2N_patch[i - 1, j]
 
-# correction_ex[,] <- user()
-# correction_int[,] <- 1 - correction_ex[i ,j]
+correction_ex[,] <- user()
 
 # background foi for introduction
 foi_bg_usr <- user()
@@ -104,11 +103,11 @@ foi_bg <- if(tt < 3600) foi_bg_usr else 0 # corresponds to 5 new infections per 
 
 # frequency dependent rate of infection
 # when reduced_shed = 1 I and I2 are essentially the same compartment
-rate_infection[ , ] <- beta * (sum(I[ , i, j]) / sum(N[ , i, j]))  + 
-  beta * reduced_shed * (sum(I2[ , i, j]) / sum(N[ , i, j])) +
-  beta * connectivity * external_I1[i, j] + 
-  beta * reduced_shed * connectivity * external_I2[i, j] + 
-  foi_bg
+rate_infection[ , ] <- (1 - correction_ex[i, j]) * (beta * (sum(I[ , i, j]) / sum(N[ , i, j]))  + 
+                                                beta * reduced_shed * (sum(I2[ , i, j]) / sum(N[ , i, j]))) +
+  correction_ex[i, j] * (beta * external_I1[i, j] + 
+                         beta * reduced_shed * external_I2[i, j] + 
+                          foi_bg)
 
 rate_infection_mAb[ , ] <- mAb_susc * rate_infection[i, j]
 rate_reinfection[ , ] <- Ab_susc * rate_infection[i, j]
