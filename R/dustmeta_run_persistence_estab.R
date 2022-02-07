@@ -51,6 +51,8 @@ n_particles <- 100L
 S_ini_p <- stoch_init(alpha, delta = par_grid_metapop_test$seasonality[1], N_0 = 10,#par_grid_metapop_test$pop[1],
                       mu, N_age, n_r = n_r, n_c = n_c)
 
+storage.mode(S_ini_p) <- "double"
+
 msirs_model <- msirs_meta_dust$new(pars = list(N_age = N_age, n_r = n_r, n_c = n_c, 
                                                alpha = alpha, 
                                                beta = par_grid_metapop_test$beta[1],

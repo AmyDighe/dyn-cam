@@ -53,7 +53,7 @@ N_0 <- 4e+05
 
 ## stochastic initialization
 S_ini_p <- stoch_init(alpha, delta, N_0, mu, N_age, n_r = n_r, n_c = n_c)
-
+storage.mode(S_ini_p) <- "double"
 
 ###################
 ## run the model ##
