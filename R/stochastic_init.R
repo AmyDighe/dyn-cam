@@ -3,6 +3,7 @@
 ## stochastic initialisation at rough zoographic equilibrium ##
 ###############################################################
 stoch_init <- function(alpha, delta, N_0, mu, N_age, n_r, n_c){
+  
   set.seed(4)
 
 births_detr <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * seq(1:360) / 360))))
