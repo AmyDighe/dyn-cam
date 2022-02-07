@@ -54,7 +54,6 @@ connectivity <- user() ##connection strength between patches (0<x<1)
 ## 4 | 11| 12| 13|3
 
 # contribution of infections in neighbouring patches
-## external_I1 from first-time infections in other patches
 
 # proportion infectious naive per patch
 IN_patch[ , ] <- sum(I[ , i, j])/sum(N[ , i, j]) # where i = rows and j = cols
@@ -95,20 +94,23 @@ external_I2[nr, 2:(nc - 1)] <- I2N_patch[1, j - 1] + I2N_patch[1, j + 1] + I2N_p
 external_I2[2:(nr - 1), 2:(nc - 1)] <-
   I2N_patch[i, j + 1] + I2N_patch[i, j - 1] + I2N_patch[i + 1, j] + I2N_patch[i - 1, j]
 
-correction_ex[,] <- user()
-
 # background foi for introduction
 foi_bg_usr <- user()
-foi_bg <- if(tt < 3600) foi_bg_usr else 0 # corresponds to 5 new infections per 1000 susceptible individuals per year
+foi_bg <- if(tt < 3600) foi_bg_usr else 0
+
+# balancing external and internal (within patch) foi
+correction_ex[,] <- user()
 
 # frequency dependent rate of infection
-# when reduced_shed = 1 I and I2 are essentially the same compartment
-rate_infection[ , ] <- (1 - correction_ex[i, j]) * (beta * (sum(I[ , i, j]) / sum(N[ , i, j]))  + 
-                                                beta * reduced_shed * (sum(I2[ , i, j]) / sum(N[ , i, j]))) +
-  correction_ex[i, j] * (beta * external_I1[i, j] + 
-                         beta * reduced_shed * external_I2[i, j] + 
-                          foi_bg)
+rate_internal_infection[ , ] <- beta *  (sum(I[ , i, j]) / sum(N[, i, j]))  + 
+  beta * reduced_shed * (sum(I2[ , i, j]) / sum(N[ , i, j]))
 
+rate_external_infection[ , ] <- beta * external_I1[i, j] + 
+  beta * reduced_shed * external_I2[i, j]
+
+rate_infection[ , ] <- (1 - correction_ex[i, j] * connectivity) * rate_internal_infection[i, j] + 
+  connectivity * rate_external_infection[i, j] + foi_bg
+  
 rate_infection_mAb[ , ] <- mAb_susc * rate_infection[i, j]
 rate_reinfection[ , ] <- Ab_susc * rate_infection[i, j]
 
@@ -225,7 +227,7 @@ births_not_protected[ , ] <- new_births[i, j] - births_protected[i, j] #  NOT pr
 
 importation_rate <- user() # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
-imp_t[] <- user() # a user defined time at which cases are imported
+imp_t <- user() # a user defined time at which cases are imported
 
 ###############################################################################################################
 # EQUATIONS for movement of individuals between disease states and age classes
@@ -263,7 +265,7 @@ update(S[N_age, , ]) <- if(tt %% 30 == 0) new_S[i - 1, j, k] + new_S[i, j, k] el
 
 update(I[1 , , ]) <-  if(tt %% 30 == 0) 0 else new_I[1, j, k]
 update(I[2:48, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] else new_I[i, j, k]
-update(I[25, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 1 + new_I[i, j, k] else new_I[i, j, k]
+update(I[25, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] else if(tt == imp_t) 1 + new_I[i, j, k] else new_I[i, j, k]
 update(I[N_age, , ]) <- if(tt %% 30 == 0) new_I[i - 1, j, k] + new_I[i, j, k] else new_I[i, j, k]
 
 update(R[1, , ]) <- if(tt %% 30 == 0) 0 else new_R[1, j, k]
@@ -281,6 +283,8 @@ update(I2[N_age, , ]) <- if(tt %% 30 == 0) new_I2[i - 1, j, k] + new_I2[i, j, k]
 update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning to work
 
 update(Itot) <- sum(I[ , , ]) + sum(I2[ , , ])
+update(Ntot) <- sum(Sm[, ,]) + sum(S[ ,  ,  ]) + sum(I[ ,  ,  ])+
+  sum(R[ ,  ,  ]) + sum(S2[ ,  , ]) + sum(I2[ , , ])
 
 ## record total population size for use in FOI
 N[ , , ] <- Sm[i, j, k] + S[i, j, k] + I[i, j, k] + R[i, j, k] + S2[i, j, k] + I2[i, j, k]
@@ -307,6 +311,7 @@ initial(I2[ , , ]) <- 0
 
 initial(tt) <- 1
 initial(Itot) <- 0
+initial(Ntot) <- sum(S_ini_p)
 
 ##################################################################################################################################
 
@@ -363,7 +368,7 @@ dim(new_I2) <- c(N_age, nr, nc)
 dim(N) <- c(N_age, nr, nc)
 dim(IN_patch) <- c(nr, nc)
 dim(I2N_patch) <- c(nr, nc)
-dim(imp_t) <- 5
+dim(correction_ex) <- c(nr, nc)
 
 dim(new_births) <- c(nr, nc)
 dim(births_protected) <- c(nr, nc)
@@ -371,9 +376,12 @@ dim(births_not_protected) <- c(nr, nc)
 dim(seropoz_A4) <- c(nr, nc)
 dim(rate_infection) <- c(nr, nc)
 dim(rate_infection_mAb) <- c(nr, nc)
+dim(rate_internal_infection) <- c(nr, nc)
+dim(rate_external_infection) <- c(nr, nc)
 dim(rate_reinfection) <- c(nr, nc)
 dim(p_infection) <- c(nr, nc)
 dim(p_infection_mAb) <- c(nr, nc)
 dim(p_reinfection) <- c(nr, nc)
 dim(external_I1) <- c(nr, nc)
 dim(external_I2) <- c(nr, nc)
+

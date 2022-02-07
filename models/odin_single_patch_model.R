@@ -160,7 +160,7 @@ births_not_protected <- new_births - births_protected #  NOT protected by mAbs
 
 importation_rate <- user(0.01) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
-imp_t[] <- user() # a user defined time at which cases are imported
+imp_t <- user() # a user defined time at which cases are imported
 
 ###############################################################################################################
 # EQUATIONS for movement of individuals between disease states and age classes
@@ -199,7 +199,7 @@ update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] + new_S[i] else new_S[i]
 
 update(I[1]) <-  if(tt %% 30 == 0) 0 else new_I[1]
 update(I[2:24]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
-update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 25 + new_I[i] else new_I[i]
+update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] else if(tt == imp_t) 25 + new_I[i] else new_I[i]
 update(I[26:48]) <- if(tt %% 30 == 0) new_I[i - 1] else new_I[i]
 update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] + new_I[i] else new_I[i]
 
@@ -396,5 +396,4 @@ dim(seroprevalence) <- N_age
 dim(N) <- N_age
 dim(ind1) <- 48
 dim(ind2) <- 48
-dim(imp_t) <- 5
 dim(N_pop) <- N_age

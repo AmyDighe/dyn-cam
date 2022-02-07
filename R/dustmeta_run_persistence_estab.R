@@ -16,104 +16,129 @@ source("R/stochastic_init.R") # function for starting model at zoographic equili
 n_r <- 5 # number of rows in grid of sub-pops
 n_c <- 5 # number of cols in grid of subpops
 
-# input a value between 0 and 1 for susceptibility of individuals with mAbs/Abs
-## 0 would mean mAbs/Abs afford complete protection
-## 1 would mean mAbs/Abs afford no protection at all
-Ab_susc <- 0.75 # default = 
+# correction for balancing ex vs int foi
 
-# input value for the proportion of baseline naive infectiousness
-# seen in reinfected animals
-reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
-
-# if rather than a rate you want importation to occur on a specific day
-imp_t <- 151  + (360 * seq(0, 4, by = 1))
+correction_ex <- matrix(c(2, 3, 3, 3, 2,
+                          3, 4, 4, 4, 3,
+                          3, 4, 4, 4, 3,
+                          3, 4, 4, 4, 3,
+                          2, 3, 3, 3, 2), nrow = 5, ncol = 5)
 
 # set level of connectivity between patches
 connectivity <- c(0.01, 0.1, 0.05, 0.001)
-
-## stochastic initialization
-S_ini_p <- stoch_init(alpha, delta = par_grid_metapop$seasonality[1], N_0 = par_grid_metapop$pop[1],
-                      mu, N_age, n_r = n_r, n_c = n_c)
-
 
 ###################
 ## run the model ##
 ###################
 
+###########################
+###########################
+#### test connectivity ####
+###########################
+###########################
+
+par_grid_metapop_test <- expand_grid(beta = 5.5/14, 
+                                     waning = 1/90,
+                                     shedding = 0.25,
+                                     seasonality = 1,
+                                     susc = 0.75,
+                                     pop = c(1e+03, 5e+03, 7.5e+03)/25,
+                                     connectivity = c(0.1, 0.05, 0.01, 0.005, 0.001))
+
 n_particles <- 100L
+
+## stochastic initialization
+S_ini_p <- stoch_init(alpha, delta = par_grid_metapop_test$seasonality[1], N_0 = 10,#par_grid_metapop_test$pop[1],
+                      mu, N_age, n_r = n_r, n_c = n_c)
 
 msirs_model <- msirs_meta_dust$new(pars = list(N_age = N_age, n_r = n_r, n_c = n_c, 
                                                alpha = alpha, 
-                                               beta = par_grid_metapop$beta[1],
+                                               beta = par_grid_metapop_test$beta[1],
                                                gamma = gamma, 
-                                               sigma = par_grid_metapop$waning[1],
+                                               sigma = par_grid_metapop_test$waning[1],
                                                sigma_m = sigma_m, 
-                                               Ab_susc = Ab_susc, mAb_susc = mAb_susc, 
-                                               reduced_shed = reduced_shed, mu = mu, 
-                                               N_0 = par_grid_metapop$pop[1], 
+                                               Ab_susc = par_grid_metapop_test$susc[1],
+                                               mAb_susc = mAb_susc, 
+                                               reduced_shed = par_grid_metapop_test$shedding[1], mu = mu, 
+                                               N_0 = 10,#par_grid_metapop_test$pop[1], 
                                                importation_rate = importation_rate, 
                                                imp_t = imp_t, 
-                                               delta =  par_grid_metapop$seasonality[1], 
-                                               connectivity = connectivity[1], 
-                                               S_ini_p = S_ini_p), 
-                                   step = 1, 
+                                               delta =  par_grid_metapop_test$seasonality[1], 
+                                               connectivity = connectivity[1],
+                                               correction_ex = correction_ex,
+                                               S_ini_p = S_ini_p,
+                                               foi_bg_usr = foi_bg_usr), 
+                                   step = 0, 
                                    n_particles = n_particles, 
                                    n_threads = 2L, 
                                    seed = 1L)
 
+msirs_model$set_index(msirs_model$info()$index$Ntot)
 msirs_model$set_index(msirs_model$info()$index$Itot) # just extract Itot
 
 # TEST
-steps <- seq(1, 600, by = 5)
+steps <- seq(1, 3600, by = 10)
 state <- msirs_model$simulate(steps)
 traces <- t(drop(state[1,,]))
 matplot(steps, traces, type = "l", lty = 1, col = "#00000022",
         xlab = "Time", ylab = "Number infected (I)")
 lines(steps, rowMeans(traces), col = "red", lwd = 2)
 
+
+
 # PERSISTENCE ANALYSIS
-estab <- vector(length = (dim(par_grid_metapop)[1]))
+estab <- vector(length = (dim(par_grid_metapop_test)[1]))
 m_persist <- estab
 persist <- estab
-steps <- seq(1, 19710, by = 10)
+steps <- seq(0, 12600, by = 10)
 
-S_ini_list <- list(length = dim(par_grid_metapop)[1]) ## stochastic initialization
-for(i in 1:(dim(par_grid_metapop)[1])){
-  S_ini_list[[i]] <- stoch_init(alpha, delta = par_grid_metapop$seasonality[i],
-                                N_0 = par_grid_metapop$pop[i],
+S_ini_list <- list(length = dim(par_grid_metapop_test)[1]) ## stochastic initialization
+for(i in 1:(dim(par_grid_metapop_test)[1])){
+  S_ini_list[[i]] <- stoch_init(alpha, delta = par_grid_metapop_test$seasonality[i],
+                                N_0 = par_grid_metapop_test$pop[i],
                                 mu, N_age, n_r = n_r, n_c = n_c)
 }
 
-connectivity <- 0.01
+e_t <- 13 * 360
+m_t <- 25 * 360
+p_t <- 35 * 360
 
-for(i in 1:(dim(par_grid_metapop)[1])){
-  imp_t <- par_grid_metapop$import_time[i] + (360 * seq(0,4, by = 1))
-  e_t <- imp_t[5] + (3 * 360)
-  m_t <- imp_t[5] + (25 * 360)
-  p_t <- imp_t[5] + (50 * 360)
+for(i in 1:(dim(par_grid_metapop_test)[1])){
   
   msirs_model$update_state(pars = list(N_age = N_age, n_r = n_r, n_c = n_c, 
-                                       alpha = alpha, beta = par_grid_metapop$beta[i], gamma = gamma, 
-                                       sigma = par_grid_metapop$waning[i], sigma_m = sigma_m, 
-                                       Ab_susc = Ab_susc, mAb_susc = mAb_susc, 
-                                       reduced_shed = reduced_shed, mu = mu, N_0 = par_grid_metapop$pop[i], 
-                                       importation_rate = importation_rate, imp_t = imp_t, 
-                                       delta = par_grid_metapop$seasonality[i], 
-                                       connectivity = connectivity, 
-                                       S_ini_p = S_ini_list[[i]]),
-                           step = 1)
+                                       alpha = alpha, 
+                                       beta = par_grid_metapop_test$beta[i],
+                                       gamma = gamma, 
+                                       sigma = par_grid_metapop_test$waning[i],
+                                       sigma_m = sigma_m, 
+                                       Ab_susc = par_grid_metapop_test$susc[i],
+                                       mAb_susc = mAb_susc, 
+                                       reduced_shed = par_grid_metapop_test$shedding[i], mu = mu, 
+                                       N_0 = par_grid_metapop_test$pop[i], 
+                                       importation_rate = importation_rate, 
+                                       imp_t = imp_t, 
+                                       delta =  par_grid_metapop_test$seasonality[i], 
+                                       connectivity = par_grid_metapop_test$connectivity[i],
+                                       correction_ex = correction_ex,
+                                       S_ini_p = S_ini_p,
+                                       foi_bg_usr = foi_bg_usr), step = 0)
   
   state <- msirs_model$simulate(steps)
   out <- as.data.frame(t(drop(state[1,,])))
-  
+   
   estab[i] <- sum(out[e_t/10,] > 0)
   m_persist[i] <- sum(out[m_t/10, ] > 0)
   persist[i] <- sum(out[p_t/10, ] > 0)
   print(i)
+
 }
 
-saveRDS(file = paste("results/persistence/dustmeta_persist2", connectivity, ".rds", sep = ""), 
+saveRDS(file = "results/persistence/dustmeta_persist_test.rds", 
         object = data.frame(persist = persist, m_persist = m_persist, estab = estab))
+
+persist_test <- cbind(par_grid_metapop_test, persist, estab, p_e = persist/estab)
+
+
 
 d <- readRDS("results/dustmeta_persist20.01.rds")
 results <- cbind(d, par_grid_metapop)
