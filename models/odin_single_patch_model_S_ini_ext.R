@@ -144,6 +144,7 @@ new_recoveries_2[1:N_age] <- rbinom(outflow_I2[i], prob = norm_p_gamma[i])
 
 delta <- user() # modulates the seasonality of births (1 being strongly seasonal, 0 being not at all seasonal)
 pi <- 3.14159 # odin doesn't have pi
+N_0 <- user()
 
 # calculating a seasonal birthrate, with a one year periodicity, not too sharp peak. 
 # can use alpha rather than p_alpha here (bc not coming from a finite pop)
@@ -158,7 +159,7 @@ births_not_protected <- new_births - births_protected #  NOT protected by mAbs
 ## importation process ##
 #########################
 
-importation_rate <- user(0) # should be proportional to population size?
+importation_rate <- user(0.01) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
 imp_t <- user() # a user defined time at which cases are imported
 
@@ -228,10 +229,11 @@ update(seropoz_A4) <- (sum(S2[N_age]) + sum(I[N_age]) + sum(I2[N_age]) + sum(R[N
 ##################################################################################################################################
 # initial conditions
 # equilibrium solution approximated to speed up balancing of demography
-# no equilibrium solution for infection at this point
 ##################################################################################################################################
 
 ## initial states
+
+S_ini_p[] <- user()
 
 initial(Sm[1:N_age]) <- 0
 initial(S[1:N_age]) <- S_ini_p[i]
@@ -241,41 +243,8 @@ initial(S2[1:N_age]) <- 0
 initial(I2[1:N_age]) <- 0
 
 initial(tt) <- 1
-#initial(N[1:N_age]) <- S_ini_p[i]
 initial(seroprevalence[1:N_age]) <- 0
 initial(seropoz_A4) <- 0
-
-## initial population size for use in birthrate
-
-N_0 <- user(1000) # user-defined
-
-## setting initial conditions using the equilibrium solution for age distribution
-
-births_detr[1:360] <- 10000000 * alpha * (1 + (delta * (cos(2 * pi * i / 360)))) # change to fixed N_0 = huge to avoid NaNs
-births_det[1:360] <- rpois(births_detr[i]) 
-
-
-## if we start the model with the equilibrium amount in each of the first 48 month-wide compartments,
-## birthrate will be set to balance summed death rate of the equilibrium age distribution
-
-a_max <- 32 ## estimated max number of years spent in the last age class before death (only 1% of the population above after 32 yrs)
-## (calculated in "calculating_a_max.R using exp decay mod)
-ind1[] <- user() # indexes of birth influx for demographic equilibrium solution
-ind2[] <- user()
-
-# setting initial number of camels at demographic equilibrium
-S_ini[1] <- 0
-S_ini[2:48] <- sum(births_det[ind1[i]:ind2[i]]) * exp(- (30 * sum(mu[1:(i - 1)])))
-
-# special treatment for the final open-ended compartment 49
-yearly_influx <- sum(births_det[1:360]) * exp(-(30 * (sum(mu[1:48])))) #annual inflow into the final age compartment
-yr[1:a_max] <- i  # number of years of influx before max age expectancy reached
-# camels remaining from each cohort to enter in the last 32 years influx that remain
-cohort_remaining[1:a_max] <- yearly_influx * exp(- (360 * yr[i] * mu[N_age])) 
-S_ini[N_age] <- sum(cohort_remaining[1:a_max])
-
-# getting proportion of animals in each age-class, multiplying by N_0 and rounding to whole animals
-S_ini_p[1:N_age] <- round((S_ini[i] / sum(S_ini[1:N_age])) * N_0)
 
 
 ################################################################################################################################
@@ -331,8 +300,7 @@ output(inf) <- rate_infection
 output(birthrate) <- birth_rate
 output(births) <- new_births
 output(importations) <- imported_cases
-output(yy) <- yr[12]
-output(Se) <- (sum(S[]) + Ab_susc * reduced_shed * sum(S2[]))/ sum(N[])
+output(Se) <- (sum(S[]) + Ab_susc * sum(S2[]))/ sum(N[])
 #output(foi) <- beta * sum(I[1:N_age]) / sum(N[1:N_age]) # foi applying to first infections only
 
 ################################################################################################################################
@@ -357,10 +325,7 @@ dim(R) <- N_age
 dim(S2) <- N_age
 dim(I2) <- N_age
 
-dim(S_ini) <- N_age
 dim(S_ini_p) <- N_age
-dim(yr) <- a_max
-dim(cohort_remaining) <- a_max
 dim(norm_p_infection) <- N_age
 dim(norm_p_infection_mAb) <- N_age
 dim(norm_p_gamma) <- N_age
@@ -390,10 +355,6 @@ dim(new_R) <- N_age
 dim(new_S2) <- N_age
 dim(new_I2) <- N_age
 
-dim(births_det) <- 360
-dim(births_detr) <- 360
 dim(seroprevalence) <- N_age
 dim(N) <- N_age
-dim(ind1) <- 48
-dim(ind2) <- 48
 dim(N_pop) <- N_age

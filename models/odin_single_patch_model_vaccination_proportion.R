@@ -37,7 +37,15 @@ v_reduced_shed <- user() # proportion of infectiousness seen in vaccinated first
 v_shed <- user() # proportion of infectiousness seen in vaccinated reinfections
 
 # frequency dependent rate of infection
-update(rate_infection) <- (beta * sum(I[1:N_age]) + beta * reduced_shed * sum(I2[1:N_age]) + beta * v_shed * sum(vI[1:N_age]) + beta * v_reduced_shed * sum(vI2[1:N_age]))/sum(N[1:N_age])
+
+# background foi for introduction
+foi_bg_usr <- user()
+foi_bg <- if(tt < 3600) foi_bg_usr else 0 # corresponds to 5 new infections per 1000 susceptible individuals per year
+
+update(rate_infection) <- (beta * sum(I[]) + 
+                             beta * reduced_shed * sum(I2[]) + 
+                             beta * v_shed * sum(vI[]) + 
+                             beta * v_reduced_shed * sum(vI2[]))/sum(N[]) + foi_bg
 rate_infection_vaccinated <- rate_infection * v_susc
 rate_infection_mAb <- rate_infection * mAb_susc
 rate_infection_mAb_vaccinated <- rate_infection * v_mAb_susc
@@ -115,34 +123,34 @@ p_rho <- 1 - exp(-rho) # prob vaccine induced immunity wanes
 
 # probability of leaving each compartment for any reason 
 # (other than vaccination and ageing which is dealt with later)
-p_Sm[1:N_age] <- 1 - exp(- (sigma_m + rate_infection_mAb + mu[i])) 
-p_S[1:N_age] <- 1 - exp(- (rate_infection + mu[i])) 
-p_I[1:N_age] <- 1 - exp(- (gamma + mu[i])) 
-p_R[1:N_age] <- 1 - exp(- (sigma + mu[i])) 
-p_S2[1:N_age] <- 1 - exp(- (rate_reinfection + mu[i])) 
-p_I2[1:N_age] <- 1 - exp(- (gamma + mu[i])) 
+p_Sm[] <- 1 - exp(- (sigma_m + rate_infection_mAb + mu[i])) 
+p_S[] <- 1 - exp(- (rate_infection + mu[i])) 
+p_I[] <- 1 - exp(- (gamma + mu[i])) 
+p_R[] <- 1 - exp(- (sigma + mu[i])) 
+p_S2[] <- 1 - exp(- (rate_reinfection + mu[i])) 
+p_I2[] <- 1 - exp(- (gamma + mu[i])) 
 ## for vaccinated individuals
-p_vSm[1:N_age] <- 1 - exp(- (v_sigma_m + rate_infection_mAb + mu[i] + rho)) 
-p_vS[1:N_age] <- 1 - exp(- (rate_infection + mu[i] + rho)) 
-p_vI[1:N_age] <- 1 - exp(- (v_gamma + mu[i] + rho)) 
-p_vR[1:N_age] <- 1 - exp(- (v_sigma + mu[i] + rho)) 
-p_vS2[1:N_age] <- 1 - exp(- (rate_reinfection + mu[i] + rho)) 
-p_vI2[1:N_age] <- 1 - exp(- (v_gamma + mu[i] + rho))
+p_vSm[] <- 1 - exp(- (v_sigma_m + rate_infection_mAb_vaccinated + mu[i] + rho)) 
+p_vS[] <- 1 - exp(- (rate_infection_vaccinated + mu[i] + rho)) 
+p_vI[] <- 1 - exp(- (v_gamma + mu[i] + rho)) 
+p_vR[] <- 1 - exp(- (v_sigma + mu[i] + rho)) 
+p_vS2[] <- 1 - exp(- (rate_reinfection_vaccinated + mu[i] + rho)) 
+p_vI2[] <- 1 - exp(- (v_gamma + mu[i] + rho))
 
 # outflows due to infection, recovery or death or vaccination
-outflow_Sm[1:N_age] <- rbinom(Sm[i], prob = p_Sm[i])
-outflow_S[1:N_age] <- rbinom(S[i], prob = p_S[i])
-outflow_I[1:N_age] <- rbinom(I[i], prob = p_I[i])
-outflow_R[1:N_age] <- rbinom(R[i], prob = p_R[i])
-outflow_S2[1:N_age] <- rbinom(S2[i], prob = p_S2[i])
-outflow_I2[1:N_age] <- rbinom(I2[i], prob = p_I2[i])
+outflow_Sm[] <- rbinom(Sm[i], prob = p_Sm[i])
+outflow_S[] <- rbinom(S[i], prob = p_S[i])
+outflow_I[] <- rbinom(I[i], prob = p_I[i])
+outflow_R[] <- rbinom(R[i], prob = p_R[i])
+outflow_S2[] <- rbinom(S2[i], prob = p_S2[i])
+outflow_I2[] <- rbinom(I2[i], prob = p_I2[i])
 ## for vaccinated individuals
-outflow_vSm[1:N_age] <- rbinom(vSm[i], prob = p_vSm[i])
-outflow_vS[1:N_age] <- rbinom(vS[i], prob = p_vS[i])
-outflow_vI[1:N_age] <- rbinom(vI[i], prob = p_vI[i])
-outflow_vR[1:N_age] <- rbinom(vR[i], prob = p_vR[i])
-outflow_vS2[1:N_age] <- rbinom(vS2[i], prob = p_vS2[i])
-outflow_vI2[1:N_age] <- rbinom(vI2[i], prob = p_vI2[i])
+outflow_vSm[] <- rbinom(vSm[i], prob = p_vSm[i])
+outflow_vS[] <- rbinom(vS[i], prob = p_vS[i])
+outflow_vI[] <- rbinom(vI[i], prob = p_vI[i])
+outflow_vR[] <- rbinom(vR[i], prob = p_vR[i])
+outflow_vS2[] <- rbinom(vS2[i], prob = p_vS2[i])
+outflow_vI2[] <- rbinom(vI2[i], prob = p_vI2[i])
 
 
 ###############################################################################################################
@@ -157,50 +165,50 @@ outflow_vI2[1:N_age] <- rbinom(vI2[i], prob = p_vI2[i])
 ################################################################
 
 #normalising the probabilities 
-norm_p_sigma_m[1:N_age] <- p_sigma_m/(p_sigma_m + p_infection_mAb + p_mu[i])
-norm_p_infection_mAb[1:N_age] <- p_infection_mAb/(p_sigma_m + p_infection_mAb + p_mu[i])
-norm_p_infection[1:N_age] <- p_infection/(p_infection + p_mu[i])
-norm_p_reinfection[1:N_age] <- p_reinfection/(p_reinfection + p_mu[i])
-norm_p_gamma[1:N_age] <- p_gamma/(p_gamma + p_mu[i])
-norm_p_sigma[1:N_age] <- p_sigma/(p_sigma + p_mu[i])
+norm_p_sigma_m[] <- p_sigma_m/(p_sigma_m + p_infection_mAb + p_mu[i])
+norm_p_infection_mAb[] <- p_infection_mAb/(p_sigma_m + p_infection_mAb + p_mu[i])
+norm_p_infection[] <- p_infection/(p_infection + p_mu[i])
+norm_p_reinfection[] <- p_reinfection/(p_reinfection + p_mu[i])
+norm_p_gamma[] <- p_gamma/(p_gamma + p_mu[i])
+norm_p_sigma[] <- p_sigma/(p_sigma + p_mu[i])
 
-norm_p_v_sigma_m[1:N_age] <- p_v_sigma_m/(p_v_sigma_m + p_infection_mAb + p_mu[i] + p_rho)
-norm_p_v_infection_mAb[1:N_age] <- p_v_infection_mAb/(p_v_sigma_m + p_v_infection_mAb + p_mu[i] + p_rho)
-norm_p_v_infection[1:N_age] <- p_v_infection/(p_v_infection + p_mu[i] + p_rho)
-norm_p_v_reinfection[1:N_age] <- p_v_reinfection/(p_v_reinfection + p_mu[i] + p_rho)
-norm_p_v_gamma[1:N_age] <- p_v_gamma/(p_v_gamma + p_mu[i] + p_rho)
-norm_p_v_sigma[1:N_age] <- p_v_sigma/(p_v_sigma + p_mu[i] + p_rho)
+norm_p_v_sigma_m[] <- p_v_sigma_m/(p_v_sigma_m + p_v_infection_mAb + p_mu[i] + p_rho)
+norm_p_v_infection_mAb[] <- p_v_infection_mAb/(p_v_sigma_m + p_v_infection_mAb + p_mu[i] + p_rho)
+norm_p_v_infection[] <- p_v_infection/(p_v_infection + p_mu[i] + p_rho)
+norm_p_v_reinfection[] <- p_v_reinfection/(p_v_reinfection + p_mu[i] + p_rho)
+norm_p_v_gamma[] <- p_v_gamma/(p_v_gamma + p_mu[i] + p_rho)
+norm_p_v_sigma[] <- p_v_sigma/(p_v_sigma + p_mu[i] + p_rho)
 
-norm_p_rho_vM[1:N_age] <- p_rho/(p_v_sigma_m + p_v_infection_mAb + p_mu[i] + p_rho)
-norm_p_rho_vS[1:N_age] <- p_rho/(p_v_infection + p_mu[i] + p_rho)
-norm_p_rho_vI[1:N_age] <- p_rho/(p_v_gamma + p_mu[i] + p_rho)
-norm_p_rho_vR[1:N_age] <- p_rho/(p_v_sigma + p_mu[i] + p_rho)
-norm_p_rho_vS2[1:N_age] <- p_rho/(p_v_reinfection + p_mu[i] + p_rho)
-norm_p_rho_vI2[1:N_age] <- p_rho/(p_v_gamma + p_mu[i] + p_rho)
+norm_p_rho_vM[] <- p_rho/(p_v_sigma_m + p_v_infection_mAb + p_mu[i] + p_rho)
+norm_p_rho_vS[] <- p_rho/(p_v_infection + p_mu[i] + p_rho)
+norm_p_rho_vI[] <- p_rho/(p_v_gamma + p_mu[i] + p_rho)
+norm_p_rho_vR[] <- p_rho/(p_v_sigma + p_mu[i] + p_rho)
+norm_p_rho_vS2[] <- p_rho/(p_v_reinfection + p_mu[i] + p_rho)
+norm_p_rho_vI2[] <- p_rho/(p_v_gamma + p_mu[i] + p_rho)
 
 # number of new infections, vaccinations, recoveries and newly susceptible
-new_waned_mAb[1:N_age] <- rbinom(outflow_Sm[i], prob = norm_p_sigma_m[i])
-new_infections_mAb[1:N_age] <- rbinom(outflow_Sm[i], prob = norm_p_infection_mAb[i])
-new_infections[1:N_age] <- rbinom(outflow_S[i], prob = norm_p_infection[i])
-new_recoveries[1:N_age] <- rbinom(outflow_I[i], prob = norm_p_gamma[i])
-new_waned[1:N_age] <- rbinom(outflow_R[i], prob = norm_p_sigma[i])
-new_reinfections[1:N_age] <- rbinom(outflow_S2[i], prob = norm_p_reinfection[i])
-new_recoveries_2[1:N_age] <- rbinom(outflow_I2[i], prob = norm_p_gamma[i])
+new_waned_mAb[] <- rbinom(outflow_Sm[i], prob = norm_p_sigma_m[i])
+new_infections_mAb[] <- rbinom(outflow_Sm[i], prob = norm_p_infection_mAb[i])
+new_infections[] <- rbinom(outflow_S[i], prob = norm_p_infection[i])
+new_recoveries[] <- rbinom(outflow_I[i], prob = norm_p_gamma[i])
+new_waned[] <- rbinom(outflow_R[i], prob = norm_p_sigma[i])
+new_reinfections[] <- rbinom(outflow_S2[i], prob = norm_p_reinfection[i])
+new_recoveries_2[] <- rbinom(outflow_I2[i], prob = norm_p_gamma[i])
 
-v_new_waned_mAb[1:N_age] <- rbinom(outflow_vSm[i], prob = norm_p_v_sigma_m[i])
-v_new_infections_mAb[1:N_age] <- rbinom(outflow_vSm[i], prob = norm_p_v_infection_mAb[i])
-v_new_infections[1:N_age] <- rbinom(outflow_vS[i], prob = norm_p_v_infection[i])
-v_new_recoveries[1:N_age] <- rbinom(outflow_vI[i], prob = norm_p_v_gamma[i])
-v_new_waned[1:N_age] <- rbinom(outflow_vR[i], prob = norm_p_v_sigma[i])
-v_new_reinfections[1:N_age] <- rbinom(outflow_vS2[i], prob = norm_p_v_reinfection[i])
-v_new_recoveries_2[1:N_age] <- rbinom(outflow_vI2[i], prob = norm_p_v_gamma[i])
+v_new_waned_mAb[] <- rbinom(outflow_vSm[i], prob = norm_p_v_sigma_m[i])
+v_new_infections_mAb[] <- rbinom(outflow_vSm[i], prob = norm_p_v_infection_mAb[i])
+v_new_infections[] <- rbinom(outflow_vS[i], prob = norm_p_v_infection[i])
+v_new_recoveries[] <- rbinom(outflow_vI[i], prob = norm_p_v_gamma[i])
+v_new_waned[] <- rbinom(outflow_vR[i], prob = norm_p_v_sigma[i])
+v_new_reinfections[] <- rbinom(outflow_vS2[i], prob = norm_p_v_reinfection[i])
+v_new_recoveries_2[] <- rbinom(outflow_vI2[i], prob = norm_p_v_gamma[i])
 
-new_waned_vax_M[1:N_age] <- rbinom(outflow_vSm[i], prob = norm_p_rho_vM[i])
-new_waned_vax_S[1:N_age] <- rbinom(outflow_vS[i], prob = norm_p_rho_vS[i])
-new_waned_vax_I[1:N_age] <- rbinom(outflow_vI[i], prob = norm_p_rho_vI[i])
-new_waned_vax_R[1:N_age] <- rbinom(outflow_vR[i], prob = norm_p_rho_vR[i])
-new_waned_vax_S2[1:N_age] <- rbinom(outflow_vS2[i], prob = norm_p_rho_vS2[i])
-new_waned_vax_I2[1:N_age] <- rbinom(outflow_vI2[i], prob = norm_p_rho_vI2[i])
+new_waned_vax_M[] <- rbinom(outflow_vSm[i], prob = norm_p_rho_vM[i])
+new_waned_vax_S[] <- rbinom(outflow_vS[i], prob = norm_p_rho_vS[i])
+new_waned_vax_I[] <- rbinom(outflow_vI[i], prob = norm_p_rho_vI[i])
+new_waned_vax_R[] <- rbinom(outflow_vR[i], prob = norm_p_rho_vR[i])
+new_waned_vax_S2[] <- rbinom(outflow_vS2[i], prob = norm_p_rho_vS2[i])
+new_waned_vax_I2[] <- rbinom(outflow_vI2[i], prob = norm_p_rho_vI2[i])
 
 ###################
 ## birth process ##
@@ -222,9 +230,9 @@ births_not_protected <- new_births - births_protected #  NOT protected by mAbs
 ## importation process ##
 #########################
 
-importation_rate <- user(0.01) # should be proportional to population size?
+importation_rate <- user(0) # should be proportional to population size?
 imported_cases <- rpois(importation_rate) #per day
-imp_t[] <- user() # a user defined time at which cases are imported
+imp_t <- user() # a user defined time at which cases are imported
 
 ###############################################################################################################
 # EQUATIONS for movement of individuals between disease states and age classes
@@ -245,53 +253,59 @@ new_I[1:24] <-  I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] 
 new_I[25] <- I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + imported_cases + new_waned_vax_I[i]
 new_I[26:N_age] <-  I[i] - outflow_I[i] + new_infections[i] + new_infections_mAb[i] + new_waned_vax_I[i]
 
-new_R[1:N_age] <- R[i] - outflow_R[i] + new_recoveries[i] + new_recoveries_2[i] + new_waned_vax_R[i]
-new_S2[1:N_age] <- S2[i] - outflow_S2[i] + new_waned[i] + new_waned_vax_S2[i]
-new_I2[1:N_age] <- I2[i] - outflow_I2[i] + new_reinfections[i] + new_waned_vax_I2[i]
+new_R[] <- R[i] - outflow_R[i] + new_recoveries[i] + new_recoveries_2[i] + new_waned_vax_R[i]
+new_S2[] <- S2[i] - outflow_S2[i] + new_waned[i] + new_waned_vax_S2[i]
+new_I2[] <- I2[i] - outflow_I2[i] + new_reinfections[i] + new_waned_vax_I2[i]
 
 ## for vaccinated individuals (no importation or births so only one line needed each)
 
-new_vSm[1:N_age] <- vSm[i] - outflow_vSm[i]
-new_vS[1:N_age] <- vS[i] - outflow_vS[i] + v_new_waned_mAb[i]
-new_vI[1:N_age] <-  vI[i] - outflow_vI[i] + v_new_infections[i] + v_new_infections_mAb[i]
-new_vR[1:N_age] <- vR[i] - outflow_vR[i] + v_new_recoveries[i] + v_new_recoveries_2[i]
-new_vS2[1:N_age] <- vS2[i] - outflow_vS2[i] + v_new_waned[i]
-new_vI2[1:N_age] <- vI2[i] - outflow_vI2[i] + v_new_reinfections[i]
+new_vSm[] <- vSm[i] - outflow_vSm[i]
+new_vS[] <- vS[i] - outflow_vS[i] + v_new_waned_mAb[i]
+new_vI[] <-  vI[i] - outflow_vI[i] + v_new_infections[i] + v_new_infections_mAb[i]
+new_vR[] <- vR[i] - outflow_vR[i] + v_new_recoveries[i] + v_new_recoveries_2[i]
+new_vS2[] <- vS2[i] - outflow_vS2[i] + v_new_waned[i]
+new_vI2[] <- vI2[i] - outflow_vI2[i] + v_new_reinfections[i]
 
 ## STEP 2 update with ageing & vaccination
 
-vax[1:N_age] <- if(tt > (5999)) vaxp[i] else 0
+vax[] <- if(tt > (7199)) vaxp[i] else 0
+
+new_vax_Sm[] <- rbinom(new_Sm[i], vax[i])
+new_vax_S[] <- rbinom(new_S[i], vax[i])
+new_vax_I[] <- rbinom(new_I[i], vax[i])
+new_vax_R[] <- rbinom(new_R[i], vax[i])
+new_vax_S2[] <- rbinom(new_S2[i], vax[i])
+new_vax_I2[] <- rbinom(new_I2[i], vax[i])
 
 update(Sm[1]) <- if(tt %% 30 == 0) 0 else new_Sm[1]
-update(Sm[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_Sm[i - 1]) else new_Sm[i]
-update(Sm[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_Sm[i - 1]) + round((1 - vax[i]) * new_Sm[i]) else new_Sm[i]
+update(Sm[2:48]) <- if(tt %% 30 == 0) new_Sm[i - 1] - new_vax_Sm[i - 1] else new_Sm[i]
+update(Sm[N_age]) <- if(tt %% 30 == 0) new_Sm[i - 1] - new_vax_Sm[i - 1] + new_Sm[i] - new_vax_Sm[i] else new_Sm[i]
 
 update(S[1]) <- if(tt %% 30 == 0) 0 else new_S[1]
-update(S[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_S[i - 1]) else new_S[i]
-update(S[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_S[i - 1]) + round((1 - vax[i]) * new_S[i]) else new_S[i]
+update(S[2:48]) <- if(tt %% 30 == 0) new_S[i - 1] - new_vax_S[i - 1] else new_S[i]
+update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] - new_vax_S[i - 1] + new_S[i] - new_vax_S[i] else new_S[i]
 
 update(I[1]) <-  if(tt %% 30 == 0) 0 else new_I[1]
-update(I[2:24]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I[i - 1]) else new_I[i]
-update(I[25]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I[i - 1]) else if(tt == imp_t[1] || tt == imp_t[2] || tt == imp_t[3] || tt == imp_t[4] || tt == imp_t[5]) 5 + new_I[i] else new_I[i]
-update(I[26:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I[i - 1]) else new_I[i]
-update(I[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I[i - 1]) + round((1 - vax[i]) * new_I[i]) else new_I[i]
+update(I[2:48]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] else new_I[i]
+update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] else if(tt == imp_t) 25 + new_I[i] else new_I[i]
+update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] + new_I[i] - new_vax_I[i] else new_I[i]
 
 update(R[1]) <- if(tt %% 30 == 0) 0 else new_R[1]
-update(R[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_R[i - 1]) else new_R[i]
-update(R[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_R[i - 1]) + round((1 - vax[i]) * new_R[i]) else new_R[i]
+update(R[2:48]) <- if(tt %% 30 == 0) new_R[i - 1] - new_vax_R[i - 1] else new_R[i]
+update(R[N_age]) <- if(tt %% 30 == 0) new_R[i - 1] - new_vax_R[i - 1] + new_R[i] - new_vax_R[i] else new_R[i]
 
 update(S2[1]) <- if(tt %% 30 == 0) 0 else new_S2[1]
-update(S2[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_S2[i - 1]) else new_S2[i]
-update(S2[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_S2[i - 1]) + round((1 - vax[i]) * new_S2[i]) else new_S2[i]
+update(S2[2:48]) <- if(tt %% 30 == 0) new_S2[i - 1] - new_vax_S2[i - 1] else new_S2[i]
+update(S2[N_age]) <- if(tt %% 30 == 0) new_S2[i - 1] - new_vax_S2[i - 1] + new_S2[i] - new_vax_S2[i] else new_S2[i]
 
 update(I2[1]) <- if(tt %% 30 == 0) 0 else new_I2[1]
-update(I2[2:48]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I2[i - 1]) else new_I2[i]
-update(I2[N_age]) <- if(tt %% 30 == 0) round((1 - vax[i - 1]) * new_I2[i - 1]) + round((1 - vax[i]) * new_I2[i]) else new_I2[i]
+update(I2[2:48]) <- if(tt %% 30 == 0) new_I2[i - 1] - new_vax_I2[i - 1] else new_I2[i]
+update(I2[N_age]) <- if(tt %% 30 == 0) new_I2[i - 1] - new_vax_I2[i - 1] + new_I2[i] - new_vax_I2[i] else new_I2[i]
 
 ## and for vaccinated individuals
 update(vSm[1]) <- if(tt %% 30 == 0) 0 else new_vSm[1]
-update(vSm[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_Sm[i - 1]) + new_vSm[i - 1] else new_vSm[i]
-update(vSm[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_Sm[i - 1]) + round(vax[i] * new_Sm[i]) + new_vSm[i - 1] + new_vSm[i] else new_vSm[i]
+update(vSm[2:48]) <- if(tt %% 30 == 0) new_vax_Sm[i - 1] + new_vSm[i - 1] else new_vSm[i]
+update(vSm[N_age]) <- if(tt %% 30 == 0) new_vax_Sm[i - 1] + new_vax_Sm[1] + new_vSm[i - 1] + new_vSm[i] else new_vSm[i]
 
 update(vS[1]) <- if(tt %% 30 == 0) 0 else new_vS[1]
 update(vS[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_S[i - 1]) + new_vS[i - 1] else new_vS[i]
@@ -302,16 +316,16 @@ update(vI[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I[i - 1]) + new_vI[
 update(vI[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I[i - 1]) + round(vax[i] * new_I[i]) + new_vI[i - 1] + new_vI[i] else new_vI[i]
 
 update(vR[1]) <- if(tt %% 30 == 0) 0 else new_vR[1]
-update(vR[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_R[i - 1]) + new_vR[i - 1] else new_vR[i]
-update(vR[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_R[i - 1]) + round(vax[i] * new_R[i]) + new_vR[i - 1] + new_vR[i] else new_vR[i]
+update(vR[2:48]) <- if(tt %% 30 == 0) new_vax_R[i - 1] + new_vR[i - 1] else new_vR[i]
+update(vR[N_age]) <- if(tt %% 30 == 0) new_vax_R[i - 1] + new_vR[i - 1] + new_vax_R[i] + new_vR[i] else new_vR[i]
 
 update(vS2[1]) <- if(tt %% 30 == 0) 0 else new_vS2[1]
-update(vS2[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_S2[i - 1]) + new_vS2[i - 1] else new_vS2[i]
-update(vS2[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_S2[i - 1]) + round(vax[i] * new_S2[i]) + new_vS2[i - 1] + new_vS2[i] else new_vS2[i]
+update(vS2[2:48]) <- if(tt %% 30 == 0) new_vax_S2[i - 1] + new_vS2[i - 1] else new_vS2[i]
+update(vS2[N_age]) <- if(tt %% 30 == 0) new_vax_S2[i - 1] + new_vax_S2[i] + new_vS2[i - 1] + new_vS2[i] else new_vS2[i]
 
 update(vI2[1]) <- if(tt %% 30 == 0) 0 else new_vI2[1]
-update(vI2[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I2[i - 1]) + new_vI2[i - 1] else new_vI2[i]
-update(vI2[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I2[i - 1]) + round(vax[i] * new_I2[i]) + new_vI2[i - 1] + new_vI2[i] else new_vI2[i]
+update(vI2[2:48]) <- if(tt %% 30 == 0) new_vax_I2[i - 1] + new_vI2[i - 1] else new_vI2[i]
+update(vI2[N_age]) <- if(tt %% 30 == 0) new_vax_I2[i - 1] + new_vax_I2[i] + new_vI2[i - 1] + new_vI2[i] else new_vI2[i]
 
 #update(seroprevalence[1:N_age]) <- (I[i] + R[i] + S2[i] + I2[i]) / (Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i])
 
@@ -322,7 +336,7 @@ update(seropoz_A4) <- (sum(S2[N_age]) + sum(I[N_age]) + sum(I2[N_age]) + sum(R[N
 
 update(tt) <- tt + 1 # used to count time, must start at one for %% conditioning to work
 
-N[1:N_age] <- Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i] + vSm[i] + vS[i] + vI[i] + vR[i] + vS2[i] + vI2[i]
+N[] <- Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i] + vSm[i] + vS[i] + vI[i] + vR[i] + vS2[i] + vI2[i]
 
 ##################################################################################################################################
 # initial conditions
@@ -356,7 +370,7 @@ initial(seropoz_A4) <- 0
 
 ## initial population size for use in birthrate
 
-N_0 <- user(1000) # user-defined
+N_0 <- user() # user-defined
 
 ## setting initial conditions using the equilibrium solution for age distribution
 
@@ -414,7 +428,7 @@ output(vI_2) <- sum(vI2[1:N_age]) # individuals infectious for the 2nd+ time
 
 output(N_pop[1:N_age]) <- N[i]
 
-output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:N_age]) # total number of susceptible individuals
+output(Stot) <- sum(S[1:N_age]) + sum(S2[1:N_age]) + sum(Sm[1:N_age]) + sum(vS[]) + sum(vS2[]) + sum(vSm[]) # total number of susceptible individuals
 output(Itot) <- sum(I[1:N_age]) + sum(I2[1:N_age]) + sum(vI[1:N_age]) + sum(vI2[1:N_age]) # total number of infectious individuals
 output(Vtot) <- sum(vSm[1:N_age]) + sum(vS[1:N_age]) + sum(vI[1:N_age]) + sum(vR[1:N_age]) + sum(vS2[1:N_age]) + sum(vI2[1:N_age])
 output(Ntot) <- sum(N[1:N_age]) # total number of individuals
@@ -431,7 +445,8 @@ output(seropoz_tot) <- 100 * (sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age
 ###############
 output(incidence_new_inf) <- sum(new_infections[1:N_age])
 output(total_incidence) <- sum(new_infections[1:N_age]) + sum(new_reinfections[1:N_age]) + sum(v_new_infections[1:N_age]) + sum(v_new_reinfections[1:N_age])
-
+output(weighted_incidence[1:N_age])<- new_infections[i] + reduced_shed * new_reinfections[i] +
+  v_shed * v_new_infections[i] + v_reduced_shed * v_new_reinfections[i]
 ###########
 ## other ##
 ###########
@@ -440,6 +455,7 @@ output(birthrate) <- birth_rate
 output(births) <- new_births
 output(importations) <- imported_cases
 output(yy) <- yr[12]
+
 #output(foi) <- beta * sum(I[1:N_age]) / sum(N[1:N_age]) # foi applying to first infections only
 
 
@@ -557,10 +573,16 @@ dim(new_vR) <- N_age
 dim(new_vS2) <- N_age
 dim(new_vI2) <- N_age
 
+dim(new_vax_Sm) <- N_age
+dim(new_vax_S) <- N_age
+dim(new_vax_I) <- N_age
+dim(new_vax_R) <- N_age
+dim(new_vax_S2) <- N_age
+dim(new_vax_I2) <- N_age
+
 dim(births_det) <- 360
 dim(births_detr) <- 360
 #dim(seroprevalence) <- N_age
 dim(N) <- N_age
 dim(ind1) <- 48
 dim(ind2) <- 48
-dim(imp_t) <- 5

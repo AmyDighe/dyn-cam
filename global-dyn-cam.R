@@ -2,7 +2,6 @@
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(gganimate)
 library(tictoc) # for benchmarking
 library(rlist)
 
@@ -155,37 +154,27 @@ par_grid_core <- rbind(par_grid_core_0.01,
                        par_grid_core_0.25,
                        par_grid_core_0.50)
 
-# for finding point of bifurcation - fine beta 
-
-beta_extra <- list("shedding_0.01" = c(5)/14,
-             "shedding_0.25" = c()/14,
-             "shedding_0.50" = c()/14)
-
-par_grid_fine_beta_0.01 <- expand.grid(shedding = shedding["shedding_0.01"],
-                                       beta = beta_extra[["shedding_0.01"]],
-                                       waning = waning[1], 
-                                       susc = susc[1],
-                                       seasonality = seasonality, 
-                                       pop = pop)
-par_grid_fine_beta_0.25 <- expand.grid(shedding = shedding["shedding_0.25"],
-                                       beta = beta_extra[["shedding_0.25"]],
-                                       waning = waning[1], 
-                                       susc = susc[1],
-                                       seasonality = seasonality, 
-                                       pop = pop)
-par_grid_fine_beta_0.50 <- expand.grid(shedding = shedding["shedding_0.50"],
-                                       beta = beta_extra[["shedding_0.50"]],
-                                       waning = waning[1], 
-                                       susc = susc[1],
-                                       seasonality = seasonality, 
-                                       pop = pop)
-par_grid_fine_beta <- rbind(par_grid_fine_beta_0.01,
-                            par_grid_fine_beta_0.25,
-                            par_grid_fine_beta_0.50)
-
 
 # sensitivity analyses
 par_grid_sens <- expand.grid(waning = waning[2])
 
 # grid for meta-population model
-par_grid_metapop <- par_grid_core %>% filter(seasonality == 1)
+par_grid_metapop <- par_grid_core %>% filter(seasonality == 1, pop > 250)%>%
+  mutate(pop = pop/25)
+
+# grid for vaccination age optimisation
+rho <- c(1/360, 1/(3*360), 1/(10*360))
+pars_1 <- expand.grid(beta = beta[["shedding_0.01"]], rho = rho, 
+                      v_shed = 0.01, v_reduced_shed = 0.0015, reduced_shed = 0.01,
+                      v_susc = 0.75, v_Ab_susc = 0.50)
+pars_50 <- expand.grid(beta = beta[["shedding_0.50"]], rho = rho, 
+                       v_shed = 0.5, v_reduced_shed = 0.33, reduced_shed = 0.5,
+                       v_susc = 0.75, v_Ab_susc = 0.50)
+pars_1_transblock <- expand.grid(beta = beta[["shedding_0.01"]], rho = rho, 
+                                 v_shed = 0.01, v_reduced_shed = 0.0015, reduced_shed = 0.01,
+                                 v_susc = 1, v_Ab_susc = 0.75)
+pars_1_boostnat <- expand.grid(beta = beta[["shedding_0.01"]], rho = rho, 
+                               v_shed = 1, v_reduced_shed = 0.0015, reduced_shed = 0.01,
+                               v_susc = 1, v_Ab_susc = 0.50)
+
+pars <- rbind(pars_1, pars_50, pars_1_transblock, pars_1_boostnat)

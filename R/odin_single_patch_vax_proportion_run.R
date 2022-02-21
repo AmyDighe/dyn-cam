@@ -1,13 +1,9 @@
-# removing the check on indexes now that all naked "i" have been changed to start at 1 in odin
-options(odin.no_check_naked_index = TRUE)
+
 sir_model_vax <- odin::odin("models/odin_single_patch_model_vaccination_proportion.R", verbose = FALSE, skip_cache = TRUE)
 
 ##########################
 ## customise parameters ##
 ##########################
-
-# input a value for the baseline effective contact rate
-beta <- c(0.25, 0.5, 1)
 
 # input a value for the average duration of complete immunity following infection (in days) 
 duration_immunity <- 90 # default = 
@@ -18,19 +14,12 @@ sigma <- 1/duration_immunity # default =
 ## 1 would mean mAbs/Abs afford no protection at all
 Ab_susc <- 0.75 # default = 
 
-# input value for the proportion of baseline naive infectiousness
-# seen in reinfected animals
-reduced_shed <- 1/92 # based on AUC from shedding in Alharbi 
-
 # input an initial population size
 N_0 <- 1000000
 
 # input the time period that you wish to run the model for (in days)
-time_period <- 9601
+time_period <- 10800
 t <- seq(0:time_period)
-
-# if rather than a rate you want importation to occur on a specific day input that day here
-imp_t <- 151  + (360 * seq(0, 4, by = 1))
 
 # set a level of seasonality for births (1 being strongly seasonal, 0 being not at all seasonal)
 delta <-  1 
@@ -40,203 +29,242 @@ delta <-  1
 v_gamma <- gamma # rate of recovery from infection in vaccinated animals
 v_sigma <- sigma # rate of waning complete infection induced immunity in vaccinated animals
 v_sigma_m <- sigma_m # rate of waning of mAbs in vaccinated animals
-
 v_mAb_susc <- mAb_susc # relative susceptibility of vaccinated animals with mAbs
-v_susc <- 0.75 # relative susceptibility of vaccinated naive animals
-v_Ab_susc <- 0.25  # relative susceptibility of vaccinated previously infected animals
-
-v_shed <- 1/92 # infectiousness of vaccinated naive animals cf naive unvaccinated
-v_reduced_shed <- 1/724 # infectiousness of vaccinated previously infected animals cf naive unvaccinated
-
-# age dependent rates of vaccination
-
-age_idx_vax <- c(1:48)
-vaxp <- rep(0, 49)
-rho <- c(1/360, 1/(3*360), 1/(10*360)) # rate at which vaccine induced immunity wanes per day
 coverage <- 0.8
 
 ###############
 ## run model ##
 ###############
 
-last_imp <- imp_t[5]
-pars <- expand.grid(beta = beta, rho = rho)
-incidence <- matrix(nrow = dim(pars)[1], ncol = length(age_idx_vax) + 1)
-age_output <- array(dim = c(length(age_idx_vax) + 1, 49, dim(pars)[1]))
+incidence <- matrix(nrow = dim(pars)[1], ncol = 25)
+incidence_l <- incidence
+incidence_u <- incidence
+age_output <- array(dim = c(25, 26, dim(pars)[1])) #dim(age targeted, age, scenario)
+age_output_l <- age_output
+age_output_u <- age_output
 
-for(i in 4:(dim(pars)[1])){
+for(i in c(37:48)){
   beta <- pars$beta[i]
-  rho <- pars$rho[i]
+  reduced_shed <- pars$reduced_shed[i]
+  v_shed <- pars$v_shed[i]
+  v_reduced_shed <- pars$v_reduced_shed[i]
   
-  for(j in 1:(length(age_idx_vax)+1)){
+  for(j in 1:25){
     vaxp <- rep(0, 49)
-    if(j < 49){
-      vaxp[age_idx_vax[j]] <- coverage
-    }
+    if(j <25){
+      vaxp[2*j] <- coverage}
+      
     # include any user-defined parameters as arguments here
     x <- sir_model_vax$new(alpha = alpha, beta = beta, gamma = gamma, sigma = sigma, sigma_m = sigma_m, Ab_susc = Ab_susc, 
-                   mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu_1st_yr = mu_1st_yr, mu_2nd_yr = mu_2nd_yr,
-                   mu_3rd_yr = mu_3rd_yr, mu_4th_yr = mu_4th_yr, mu_adult_over_4 = mu_adult_over_4, N_0 = N_0,
+                   mAb_susc = mAb_susc, reduced_shed = reduced_shed, mu = mu, N_0 = N_0,
                    importation_rate = importation_rate, imp_t = imp_t, delta = delta, ind1 = ind1, ind2 = ind2,
-                   v_gamma = v_gamma, v_sigma = v_sigma, v_sigma_m = v_sigma_m, v_mAb_susc = v_mAb_susc, 
-                   v_Ab_susc = v_Ab_susc, v_shed = v_shed, v_reduced_shed = v_reduced_shed, vaxp = vaxp, rho = rho)
+                   v_gamma = v_gamma, v_sigma = v_sigma, v_sigma_m = v_sigma_m, v_susc  = pars$v_susc[i], v_mAb_susc = v_mAb_susc, 
+                   v_Ab_susc = pars$v_Ab_susc[i], v_shed = v_shed, v_reduced_shed = v_reduced_shed, vaxp = vaxp, rho = pars$rho[i],
+                   foi_bg_usr = foi_bg_usr)
 
-    #out <- as.data.frame(x$run(t)[, c(103:(103+48), 250:(250+48), 397:(397+48), 544:(544+48), 613)])
-    n_runs <- 100
-    out <- as.data.frame(replicate(n_runs, x$run(t)[, c(103:(103+48), 250:(250+48), 397:(397+48), 544:(544+48), 613)])) #save just infectious comps and incidence
+    if(beta < 0.5){
+      n_runs <- 200
+    } else {
+      n_runs <- 100
+    }
+    
+    out <- as.data.frame(replicate(n_runs, x$run(t)[, c(103, seq(103+1, 103+47, by = 2),103+48, 
+                                                        250, seq(250+1, 250+47, by = 2), 250+48,
+                                                        397, seq(397+1, 397+47, by = 2), 397+48,
+                                                        544, seq(544+1, 544+47, by = 2), 544+48,
+                                                        613)])) #save just infectious comps and incidence
     # output total incidence
-    out_inc <- out[6000 : 9600, grep("total_incidence", colnames(out))]
+    out_inc <- out[7200 : 10800, grep("total_incidence", colnames(out))]
     incidence[i, j] <- mean(colSums(out_inc[ , ]))
+    incidence_l[i, j] <- quantile(colSums(out_inc[ , ]), 0.05)
+    incidence_u[i, j] <- quantile(colSums(out_inc[ , ]), 0.95)
     # output the number of infectious camel days stratified by age group and the total 
-    out_I1 <- out[6000 : 9600, grep("^I\\[", colnames(out))]
-    out_I2 <- out[6000 : 9600, grep("^I2", colnames(out))]
-    out_vI1 <- out[6000 : 9600, grep("vI\\[", colnames(out))]
-    out_vI2 <- out[6000 : 9600, grep("vI2", colnames(out))]
+    out_I1 <- out[7200 : 10800, grep("^I\\[", colnames(out))]
+    out_I2 <- out[7200 : 10800, grep("^I2", colnames(out))]
+    out_vI1 <- out[7200 : 10800, grep("vI\\[", colnames(out))]
+    out_vI2 <- out[7200 : 10800, grep("vI2", colnames(out))]
 
       output <- matrix(colSums(out_I1) +
         reduced_shed * colSums(out_I2) +
         v_shed * colSums(out_vI1) +
-        v_reduced_shed * colSums(out_vI2), nrow = n_runs, ncol = 49, byrow = T)
+        v_reduced_shed * colSums(out_vI2), nrow = n_runs, ncol = 26, byrow = T)
 
   age_output[j, , i] <- colMeans(output)
+  age_output_l[j, , i] <- apply(output, 2, quantile, probs = 0.05, na.rm = TRUE)
+  age_output_u[j, , i] <- apply(output, 2, quantile, probs = 0.95, na.rm = TRUE)
 
-print(paste(i,j, sep = " "))
+print(paste(i,j, incidence[i,j], sep = " "))
   } #end of j loop
-  saveRDS(incidence[i, ], file = paste("results/vax_age_opti/inc/", "incidence_2_", "beta_", pars$beta[i], "_rho_", signif(pars$rho[i], 2), ".rds", sep = ""))
-  saveRDS(age_output[, ,i], file = paste("results/vax_age_opti/output/", "output_2_", "beta_", pars$beta[i], "_rho_", signif(pars$rho[i], 2), ".rds", sep = ""))
+  saveRDS(incidence[i, ], file = paste("results/vax_age_opti/inc/", "incidence_3_", i, ".rds", sep = ""))
+  saveRDS(age_output[, ,i], file = paste("results/vax_age_opti/output/", "output_3_", i, ".rds", sep = ""))
+  saveRDS(incidence_l[i, ], file = paste("results/vax_age_opti/inc/", "incidence_3l_", i, ".rds", sep = ""))
+  saveRDS(age_output_l[, ,i], file = paste("results/vax_age_opti/output/", "output_3l_", i, ".rds", sep = ""))
+  saveRDS(incidence_u[i, ], file = paste("results/vax_age_opti/inc/", "incidence_3u_", i, ".rds", sep = ""))
+  saveRDS(age_output_u[, ,i], file = paste("results/vax_age_opti/output/", "output_3u_", i, ".rds", sep = ""))
   } #end of i loop
 
-# trying to vectorise this:
-# output <- data.frame(nrow = 49*n_runs, ncol = 1)
-# for(k in 1:(49*n_runs)){
-#   output[,k] <- sum(out_I1[,k]) +
-#     reduced_shed * sum(out_I2[,k]) +
-#     v_shed * sum(out_vI1[,k]) +
-#     v_reduced_shed * sum(out_vI2[,k])
-# }
-# names(output) <- names(out_vI2)
-# 
-# for(age in 1:49){
-#   age_output[j, age, i] <- mean(unlist(output[,grep(paste("\\[", age, "\\]", sep = ""), colnames(output))]))
-# }
-scenario <- vector(length = 9)
-
-for(i in 1:9){
-  scenario[i] <- paste("\U03B2", " = ", pars$beta[i], ", ", " \U03C1", " = ", 1/(360 * pars$rho[i]), "yrs", sep = "")
-}
-scenario_v <- scenario
 ## Processing RESULTS
+n_scenario <- 48
+inc_mat <- matrix(NA, nrow = n_scenario, ncol = 25)
+for(i in 1:12){
+  inc_mat[i,] <- readRDS(paste("results/vax_age_opti/inc/", 
+                               "incidence_3_", 
+                               "beta_", 
+                               pars$beta[i], 
+                               "_rho_", 
+                               signif(pars$rho[i], 2), 
+                               ".rds", sep = ""))
+  inc_mat_l[i,] <- readRDS(paste("results/vax_age_opti/inc/", 
+                                 "incidence_3_", 
+                                 "beta_", 
+                                 pars$beta[i], 
+                                 "_rho_", 
+                                 signif(pars$rho[i], 2), 
+                                 ".rds", sep = ""))
+}
 
-# for some reason reading multiple rds files isn't working - it can't find files
-inc_1 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.25_rho_0.0028.rds")
-inc_2 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.5_rho_0.0028.rds")
-inc_3 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_1_rho_0.0028.rds")
-inc_4 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.25_rho_0.00093.rds")
-inc_5 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.5_rho_0.00093.rds")
-inc_6 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_1_rho_0.00093.rds")
-inc_7 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.25_rho_0.00028.rds")
-inc_8 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_0.5_rho_0.00028.rds")
-inc_9 <- readRDS("results/vax_age_opti/inc/incidence_2_beta_1_rho_0.00028.rds")
+for(i in 13:48){
+  inc_mat[i,] <- readRDS(paste("results/vax_age_opti/inc/", 
+                               "incidence_3_", 
+                               i,
+                               ".rds", sep = ""))
+}
 
-inc_df <- as.data.frame(cbind(inc_1, inc_2, inc_3, inc_4, inc_5, inc_6, inc_7, inc_8, inc_9))
-inc_df$age_targeted <- 1:49
-inc_df_long <- gather(inc_df, -age_targeted, key = "scenario", value = "incidence")
-inc_df_long$scenario <- rep(scenario, each = 49)
-matplot(y = inc_df, type = "l")
+scenario <- c(rep(1, 12), rep(2, 12), rep(3, 12), rep(4, 12))
+beta_rho <- vector(length = 48)
+for(i in 1:48){
+beta_rho[i] <- paste("\U03B2", " = ", format(round(pars$beta[i],2), nsmall = 2), 
+                     ", \U03C1", " = ", 1/(360*pars$rho[i]), " yrs", sep = "")}
+inc_df <- as.data.frame(inc_mat)
+inc_df$scenario <- scenario
+inc_df$beta_rho <- beta_rho
+inc_df_long <- pivot_longer(inc_df, c(-scenario, -beta_rho), names_to = "age_targeted", names_prefix = "V",
+                            values_to = "incidence")
+inc_df_long$age_targeted <- factor(2*as.numeric(inc_df_long$age_targeted), levels = c(seq(2,50, 2)))
 
-output_1 <- readRDS("results/vax_age_opti/output/output_2_beta_0.25_rho_0.0028.rds")
-output_2 <- readRDS("results/vax_age_opti/output/output_2_beta_0.5_rho_0.0028.rds")
-output_3 <- readRDS("results/vax_age_opti/output/output_2_beta_1_rho_0.0028.rds")
-output_4 <- readRDS("results/vax_age_opti/output/output_2_beta_0.25_rho_0.00093.rds")
-output_5 <- readRDS("results/vax_age_opti/output/output_2_beta_0.5_rho_0.00093.rds")
-output_6 <- readRDS("results/vax_age_opti/output/output_2_beta_1_rho_0.00093.rds")
-output_7 <- readRDS("results/vax_age_opti/output/output_2_beta_0.25_rho_0.00028.rds")
-output_8 <- readRDS("results/vax_age_opti/output/output_2_beta_0.5_rho_0.00028.rds")
-output_9 <- readRDS("results/vax_age_opti/output/output_2_beta_1_rho_0.00028.rds")
+inc_main <- inc_df_long%>%filter(scenario != 2)
+beta_rho_ordered_main <- inc_main%>%filter(age_targeted == 48)
+beta_rho_ordered_main <- beta_rho_ordered_main[order(beta_rho_ordered_main$incidence),]
+inc_main$beta_rho <- factor(inc_main$beta_rho, levels = unique(beta_rho_ordered_main$beta_rho))
 
-output_df <- as.data.frame(rbind(output_1, output_2, output_3, output_4, output_5, output_6, output_7, output_8, output_9))
-output_df$total <- rowSums(output_df)
-output_df$scenario <- rep(scenario, each = 49)
-output_df$age_targeted <- as.numeric(rep(1:49, 9))
-output_df_tot <- data.frame(total = output_df$total, 
-                            scenario = output_df$scenario, 
-                            age_targeted = output_df$age_targeted)
+inc_s2 <- inc_df_long%>%filter(scenario==2)
+beta_rho_ordered_s2 <- inc_s2%>%filter(age_targeted == 48)
+beta_rho_ordered_s2 <- beta_rho_ordered_s2[order(beta_rho_ordered_s2$incidence),]
+inc_s2$beta_rho <- factor(inc_s2$beta_rho, levels = unique(beta_rho_ordered_s2$beta_rho))
 
-p1 <- ggplot(data = output_df_tot%>% filter(age_targeted<49))+
-  geom_line(aes(x = age_targeted, y = total, col = scenario), lwd = 1)+
+ggplot(data = inc_main%>%filter(age_targeted !=50, scenario ==1))+
+  geom_line(aes(x = age_targeted, y = incidence/N_0, group = beta_rho,
+                col = beta_rho), lwd = 1)+
+  #geom_ribbon(aes(ymin = incidence_l, ymax = incidence_u))
   theme_minimal()+
-  ylab("total infectious camel days") +
+  ylab("cumulative incidence over 10 years per animal") +
   xlab("age targeted (months)") +
-  scale_color_viridis_d(option = "D")+
-  geom_hline(yintercept = output_df_tot$total[output_df_tot$age_targeted == 49],
+  scale_color_viridis_d(option = "D", name = "parameters")+
+  geom_hline(yintercept = ((inc_df_long%>%filter(scenario == 1, age_targeted == 50))$incidence)/(N_0),
+              lty = 2, col = "grey", lwd = 1)+
+  theme(text = element_text(size = 20))+
+  theme(axis.title.x = element_text(vjust= -1))+
+  theme(axis.title.y = element_text(vjust = +3))+
+  theme(plot.margin = unit(c(0,1,1,1), "cm"))
+ggsave(filename = "figs/inc_vax_age1.png")
+
+ggplot(data = inc_s2%>%filter(age_targeted !=50))+
+  geom_line(aes(x = age_targeted, y = incidence/N_0, group = beta_rho,
+                col = beta_rho), lwd = 1)+
+  #geom_ribbon(aes(ymin = incidence_l, ymax = incidence_u))
+  theme_minimal()+
+  ylab("cumulative incidence over 10 years per animal") +
+  xlab("age targeted (months)") +
+  scale_color_viridis_d(option = "D", name = "parameters")+
+  geom_hline(yintercept = ((inc_df_long%>%filter(scenario == 2, age_targeted == 50))$incidence)/(N_0),
+             lty = 2, col = "grey", lwd = 1)+
+  theme(text = element_text(size = 20))+
+  theme(axis.title.x = element_text(vjust= -1))+
+  theme(axis.title.y = element_text(vjust = +3))+
+  theme(plot.margin = unit(c(0,1,1,1), "cm"))
+ggsave(filename = "figs/inc_vax_age2.png")
+
+ggplot(data = inc_main%>%filter(age_targeted !=50, scenario ==3))+
+  geom_line(aes(x = age_targeted, y = incidence/N_0, group = beta_rho,
+                col = beta_rho), lwd = 1)+
+  #geom_ribbon(aes(ymin = incidence_l, ymax = incidence_u))
+  theme_minimal()+
+  ylab("cumulative incidence over 10 years per animal") +
+  xlab("age targeted (months)") +
+  scale_color_viridis_d(option = "D", name = "parameters")+
+  geom_hline(yintercept = ((inc_df_long%>%filter(scenario == 3, age_targeted == 50))$incidence)/(N_0),
+             lty = 2, col = "grey", lwd = 1)+
+  theme(text = element_text(size = 20))+
+  theme(axis.title.x = element_text(vjust= -1))+
+  theme(axis.title.y = element_text(vjust = +3))+
+  theme(plot.margin = unit(c(0,1,1,1), "cm"))
+ggsave(filename = "figs/inc_vax_age3.png")
+
+ggplot(data = inc_main%>%filter(age_targeted !=50, scenario ==4))+
+  geom_line(aes(x = age_targeted, y = incidence/N_0, group = beta_rho,
+                col = beta_rho), lwd = 1)+
+  #geom_ribbon(aes(ymin = incidence_l, ymax = incidence_u))
+  theme_minimal()+
+  ylab("cumulative incidence over 10 years per animal") +
+  xlab("age targeted (months)") +
+  scale_color_viridis_d(option = "D", name = "parameters")+
+  geom_hline(yintercept = ((inc_df_long%>%filter(scenario == 4, age_targeted == 50))$incidence)/N_0,
              lty = 2, col = "grey", lwd = 1)+
   theme(text = element_text(size = 20))+
   theme(axis.title.x = element_text(vjust= -1))+
   theme(axis.title.y = element_text(vjust = +3))+
   theme(plot.margin = unit(c(0,1,1,1), "cm"))
 
-ggsave(filename = "vax_age.png")
+ggsave(filename = "figs/inc_vax_age4.png")
 
-p2 <- ggplot(data = inc_df_long%>%filter(age_targeted<49))+
-  geom_line(aes(x = age_targeted, y = incidence, col = scenario), lwd = 1)+
-  theme_minimal()+
-  ylab("incidence") +
-  xlab("age targeted (months)") +
-  scale_color_viridis_d(option = "D")+
-  geom_hline(yintercept = inc_df_long$incidence[inc_df_long$age_targeted == 49],
-             lty = 2, col = "grey", lwd = 1)+
-  theme(text = element_text(size = 20))+
-  theme(axis.title.x = element_text(vjust= -1))+
-  theme(axis.title.y = element_text(vjust = +3))+
-  theme(plot.margin = unit(c(0,1,1,1), "cm"))
 
-ggsave(filename = "inc_vax_age.png")
 
-## looking at whether infectious camel days increases for any age group
-output_list <- list(output_1, output_2, output_3, output_4, 
-                    output_5, output_6, output_7, output_8, output_9)
+output_list <- vector(mode = "list", length = n_scenario)
+for(i in 1:12){
+  output_list[[i]] <- readRDS(paste("results/vax_age_opti/output/", 
+                                "output_3_", "beta_", 
+                                pars$beta[i], "_rho_", 
+                                signif(pars$rho[i], 2),
+                                ".rds", sep = ""))
+}
 
-output_comp <- list(length = 9)
-names(output_comp) <- scenario
-for(i in 1:9){
+for(i in 13:n_scenario){
+  output_list[[i]] <- readRDS(paste("results/vax_age_opti/output/", 
+                                    "output_3_", i,
+                                    ".rds", sep = ""))
+}
+
+
+output_comp <- vector(mode = "list", length = n_scenario)
+names(output_comp) <- 1:n_scenario
+for(i in 1:n_scenario){
   op <- output_list[[i]]
-  output_comp[[i]] <- op[1:48, -(50:53)]- op[rep(49,48),-(50:53)]
+  output_comp[[i]] <- op[1:24, ]- op[rep(25,24), ]
 }
 
 output_cf <- do.call(rbind.data.frame, output_comp)
-#output_cf$scenario <- rep(scenario, each = 48)
-output_cf$age_targeted <- as.factor(rep(1:48, 9))
-output_cf_long <- gather(output_cf, -c(scenario, age_targeted), key = "age_class", value = "infectiousness")
-output_cf_long$age_class <- rep(1:49, each = (48*9))
+output_cf$age_targeted <- as.factor(rep(seq(2,48,2), n_scenario))
+output_cf$scenario <- as.factor(rep(1:n_scenario, each = 24))
+output_cf_long <- pivot_longer(output_cf, c(-age_targeted, -scenario), 
+                               names_to = "age_class", values_to = "infectiousness")
+output_cf_long$age_class <- rep(c(1, seq(2, 48, 2), 49), times = (24*n_scenario))
 
-ggplot(data = output_cf_long)+
-  geom_line(aes(x = age_class, y = infectiousness, col = age_targeted))+
-  scale_color_viridis_d()+
-  facet_wrap(~scenario)+
-  geom_hline(yintercept = 0, col = "red")+
-  xlab("age (months)") +
-  ylab("change in infectious camel days")+
-  theme_minimal()+
-  theme(text = element_text(size = 20))+
-  theme(axis.title.x = element_text(vjust= -1))+
-  theme(axis.title.y = element_text(vjust = +3))
-ggsave(filename = "output_vax_age_by_age.png")
-
-dummy_df <- data.frame(age_targeted = as.factor(1:48), Z = as.numeric(1:48))
-for(i in 1:9){
-ggplot(data = output_cf_long%>% filter(scenario == scenario_v[i]))+
-  geom_line(aes(x = age_class, y = infectiousness))+
-  scale_color_viridis_d()+
-  facet_wrap(~age_targeted)+
-  geom_vline(data = dummy_df, aes(xintercept = Z), lty = 2)+
-  geom_hline(yintercept = 0, col = "red")+
-  xlab("age (months)") +
-  ylab("change in infectious camel days")+
-  theme_minimal()+
-  theme(text = element_text(size = 20))+
-  theme(axis.title.x = element_text(vjust= -1))+
-  theme(axis.title.y = element_text(vjust = +3))+
-    ggtitle(scenario_v[i])
-
-ggsave(filename = paste("output_vax_scenario", i, ".png", sep = ""))
+scenario_v <- 1:12
+dummy_df <- data.frame(age_targeted = as.factor(seq(2, 48, 2)), Z = as.numeric(seq(2, 48, 2)))
+for(i in 1:n_scenario){
+  p <- ggplot(data = output_cf_long%>% filter(scenario == scenario_v[i]))+
+    geom_line(aes(x = age_class, y = infectiousness))+
+    scale_color_viridis_d()+
+    facet_wrap(~age_targeted)+
+    geom_vline(data = dummy_df, aes(xintercept = Z), lty = 2)+
+   # geom_hline(yintercept = 0, col = "red")+
+    xlab("age (months)") +
+    ylab("change in infectious camel days")+
+    theme_minimal()+
+    theme(text = element_text(size = 20))+
+    theme(axis.title.x = element_text(vjust= -1))+
+    theme(axis.title.y = element_text(vjust = +3))
+  print(p)
 }
+
+
