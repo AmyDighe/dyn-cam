@@ -94,7 +94,7 @@ rho <- user() #(/day) to be varied as currently unknown
 p_infection <- 1 - exp(-rate_infection)
 p_infection_mAb <- 1 - exp(-rate_infection_mAb)
 p_reinfection <- 1 - exp(-rate_reinfection)
-p_mu[1:N_age] <- 1 - exp(-mu[i]) # prob death
+p_mu[] <- 1 - exp(-mu[i]) # prob death
 p_gamma <- 1 - exp(-gamma) # prob recovery
 p_sigma <- 1 - exp(-sigma) # prob waned
 p_sigma_m <- 1 - exp(-sigma_m) #prob mAbs waned
@@ -270,62 +270,63 @@ new_vI2[] <- vI2[i] - outflow_vI2[i] + v_new_reinfections[i]
 
 vax[] <- if(tt > (7199)) vaxp[i] else 0
 
-new_vax_Sm[] <- rbinom(new_Sm[i], vax[i])
-new_vax_S[] <- rbinom(new_S[i], vax[i])
-new_vax_I[] <- rbinom(new_I[i], vax[i])
-new_vax_R[] <- rbinom(new_R[i], vax[i])
-new_vax_S2[] <- rbinom(new_S2[i], vax[i])
-new_vax_I2[] <- rbinom(new_I2[i], vax[i])
+vaxd_Sm[] <- rbinom(new_Sm[i], prob = vax[i])
+vaxd_S[] <- rbinom(new_S[i], prob = vax[i])
+vaxd_I[] <- rbinom(new_I[i], prob = vax[i])
+vaxd_R[] <- rbinom(new_R[i], prob = vax[i])
+vaxd_S2[] <- rbinom(new_S2[i], prob = vax[i])
+vaxd_I2[] <- rbinom(new_I2[i], prob = vax[i])
 
 update(Sm[1]) <- if(tt %% 30 == 0) 0 else new_Sm[1]
-update(Sm[2:48]) <- if(tt %% 30 == 0) new_Sm[i - 1] - new_vax_Sm[i - 1] else new_Sm[i]
-update(Sm[N_age]) <- if(tt %% 30 == 0) new_Sm[i - 1] - new_vax_Sm[i - 1] + new_Sm[i] - new_vax_Sm[i] else new_Sm[i]
+update(Sm[2:48]) <- if(tt %% 30 == 0) new_Sm[i - 1] - vaxd_Sm[i - 1] else new_Sm[i]
+update(Sm[N_age]) <- if(tt %% 30 == 0) new_Sm[i - 1] - vaxd_Sm[i - 1] + new_Sm[i] - vaxd_Sm[i] else new_Sm[i]
 
 update(S[1]) <- if(tt %% 30 == 0) 0 else new_S[1]
-update(S[2:48]) <- if(tt %% 30 == 0) new_S[i - 1] - new_vax_S[i - 1] else new_S[i]
-update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] - new_vax_S[i - 1] + new_S[i] - new_vax_S[i] else new_S[i]
+update(S[2:48]) <- if(tt %% 30 == 0) new_S[i - 1] - vaxd_S[i - 1] else new_S[i]
+update(S[N_age]) <- if(tt %% 30 == 0) new_S[i - 1] - vaxd_S[i - 1] + new_S[i] - vaxd_S[i] else new_S[i]
 
 update(I[1]) <-  if(tt %% 30 == 0) 0 else new_I[1]
-update(I[2:48]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] else new_I[i]
-update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] else if(tt == imp_t) 25 + new_I[i] else new_I[i]
-update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] - new_vax_I[i - 1] + new_I[i] - new_vax_I[i] else new_I[i]
+update(I[2:24]) <- if(tt %% 30 == 0) new_I[i - 1] - vaxd_I[i - 1] else new_I[i]
+update(I[25]) <- if(tt %% 30 == 0) new_I[i - 1] - vaxd_I[i - 1] else if(tt == imp_t) 25 + new_I[i] else new_I[i]
+update(I[26:48]) <- if(tt %% 30 == 0) new_I[i - 1] - vaxd_I[i - 1] else new_I[i]
+update(I[N_age]) <- if(tt %% 30 == 0) new_I[i - 1] - vaxd_I[i - 1] + new_I[i] - vaxd_I[i] else new_I[i]
 
 update(R[1]) <- if(tt %% 30 == 0) 0 else new_R[1]
-update(R[2:48]) <- if(tt %% 30 == 0) new_R[i - 1] - new_vax_R[i - 1] else new_R[i]
-update(R[N_age]) <- if(tt %% 30 == 0) new_R[i - 1] - new_vax_R[i - 1] + new_R[i] - new_vax_R[i] else new_R[i]
+update(R[2:48]) <- if(tt %% 30 == 0) new_R[i - 1] - vaxd_R[i - 1] else new_R[i]
+update(R[N_age]) <- if(tt %% 30 == 0) new_R[i - 1] - vaxd_R[i - 1] + new_R[i] - vaxd_R[i] else new_R[i]
 
 update(S2[1]) <- if(tt %% 30 == 0) 0 else new_S2[1]
-update(S2[2:48]) <- if(tt %% 30 == 0) new_S2[i - 1] - new_vax_S2[i - 1] else new_S2[i]
-update(S2[N_age]) <- if(tt %% 30 == 0) new_S2[i - 1] - new_vax_S2[i - 1] + new_S2[i] - new_vax_S2[i] else new_S2[i]
+update(S2[2:48]) <- if(tt %% 30 == 0) new_S2[i - 1] - vaxd_S2[i - 1] else new_S2[i]
+update(S2[N_age]) <- if(tt %% 30 == 0) new_S2[i - 1] - vaxd_S2[i - 1] + new_S2[i] - vaxd_S2[i] else new_S2[i]
 
 update(I2[1]) <- if(tt %% 30 == 0) 0 else new_I2[1]
-update(I2[2:48]) <- if(tt %% 30 == 0) new_I2[i - 1] - new_vax_I2[i - 1] else new_I2[i]
-update(I2[N_age]) <- if(tt %% 30 == 0) new_I2[i - 1] - new_vax_I2[i - 1] + new_I2[i] - new_vax_I2[i] else new_I2[i]
+update(I2[2:48]) <- if(tt %% 30 == 0) new_I2[i - 1] - vaxd_I2[i - 1] else new_I2[i]
+update(I2[N_age]) <- if(tt %% 30 == 0) new_I2[i - 1] - vaxd_I2[i - 1] + new_I2[i] - vaxd_I2[i] else new_I2[i]
 
 ## and for vaccinated individuals
 update(vSm[1]) <- if(tt %% 30 == 0) 0 else new_vSm[1]
-update(vSm[2:48]) <- if(tt %% 30 == 0) new_vax_Sm[i - 1] + new_vSm[i - 1] else new_vSm[i]
-update(vSm[N_age]) <- if(tt %% 30 == 0) new_vax_Sm[i - 1] + new_vax_Sm[1] + new_vSm[i - 1] + new_vSm[i] else new_vSm[i]
+update(vSm[2:48]) <- if(tt %% 30 == 0) vaxd_Sm[i - 1] + new_vSm[i - 1] else new_vSm[i]
+update(vSm[N_age]) <- if(tt %% 30 == 0) vaxd_Sm[i - 1] + new_vSm[i - 1] + vaxd_Sm[i] + new_vSm[i] else new_vSm[i]
 
 update(vS[1]) <- if(tt %% 30 == 0) 0 else new_vS[1]
-update(vS[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_S[i - 1]) + new_vS[i - 1] else new_vS[i]
-update(vS[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_S[i - 1]) + round(vax[i] * new_S[i]) + new_vS[i - 1] + new_vS[i] else new_vS[i]
+update(vS[2:48]) <- if(tt %% 30 == 0) vaxd_S[i - 1] + new_vS[i - 1] else new_vS[i]
+update(vS[N_age]) <- if(tt %% 30 == 0) vaxd_S[i - 1] + new_vS[i - 1] + vaxd_S[i] + new_vS[i] else new_vS[i]
 
 update(vI[1]) <-  if(tt %% 30 == 0) 0 else new_vI[1]
-update(vI[2:48]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I[i - 1]) + new_vI[i - 1] else new_vI[i]
-update(vI[N_age]) <- if(tt %% 30 == 0) round(vax[i - 1] * new_I[i - 1]) + round(vax[i] * new_I[i]) + new_vI[i - 1] + new_vI[i] else new_vI[i]
+update(vI[2:48]) <- if(tt %% 30 == 0) vaxd_I[i - 1] + new_vI[i - 1] else new_vI[i]
+update(vI[N_age]) <- if(tt %% 30 == 0) vaxd_I[i - 1] + new_vI[i - 1] + vaxd_I[i] + new_vI[i] else new_vI[i]
 
 update(vR[1]) <- if(tt %% 30 == 0) 0 else new_vR[1]
-update(vR[2:48]) <- if(tt %% 30 == 0) new_vax_R[i - 1] + new_vR[i - 1] else new_vR[i]
-update(vR[N_age]) <- if(tt %% 30 == 0) new_vax_R[i - 1] + new_vR[i - 1] + new_vax_R[i] + new_vR[i] else new_vR[i]
+update(vR[2:48]) <- if(tt %% 30 == 0) vaxd_R[i - 1] + new_vR[i - 1] else new_vR[i]
+update(vR[N_age]) <- if(tt %% 30 == 0) vaxd_R[i - 1] + new_vR[i - 1] + vaxd_R[i] + new_vR[i] else new_vR[i]
 
 update(vS2[1]) <- if(tt %% 30 == 0) 0 else new_vS2[1]
-update(vS2[2:48]) <- if(tt %% 30 == 0) new_vax_S2[i - 1] + new_vS2[i - 1] else new_vS2[i]
-update(vS2[N_age]) <- if(tt %% 30 == 0) new_vax_S2[i - 1] + new_vax_S2[i] + new_vS2[i - 1] + new_vS2[i] else new_vS2[i]
+update(vS2[2:48]) <- if(tt %% 30 == 0) vaxd_S2[i - 1] + new_vS2[i - 1] else new_vS2[i]
+update(vS2[N_age]) <- if(tt %% 30 == 0) vaxd_S2[i - 1] + new_vS2[i - 1] + vaxd_S2[i] + new_vS2[i] else new_vS2[i]
 
 update(vI2[1]) <- if(tt %% 30 == 0) 0 else new_vI2[1]
-update(vI2[2:48]) <- if(tt %% 30 == 0) new_vax_I2[i - 1] + new_vI2[i - 1] else new_vI2[i]
-update(vI2[N_age]) <- if(tt %% 30 == 0) new_vax_I2[i - 1] + new_vax_I2[i] + new_vI2[i - 1] + new_vI2[i] else new_vI2[i]
+update(vI2[2:48]) <- if(tt %% 30 == 0) vaxd_I2[i - 1] + new_vI2[i - 1] else new_vI2[i]
+update(vI2[N_age]) <- if(tt %% 30 == 0) vaxd_I2[i - 1] + new_vI2[i - 1] + vaxd_I2[i] + new_vI2[i] else new_vI2[i]
 
 #update(seroprevalence[1:N_age]) <- (I[i] + R[i] + S2[i] + I2[i]) / (Sm[i] + S[i] + I[i] + R[i] + S2[i] + I2[i])
 
@@ -445,8 +446,13 @@ output(seropoz_tot) <- 100 * (sum(I[1:N_age]) + sum(R[1:N_age]) + sum(S2[1:N_age
 ###############
 output(incidence_new_inf) <- sum(new_infections[1:N_age])
 output(total_incidence) <- sum(new_infections[1:N_age]) + sum(new_reinfections[1:N_age]) + sum(v_new_infections[1:N_age]) + sum(v_new_reinfections[1:N_age])
-output(weighted_incidence[1:N_age])<- new_infections[i] + reduced_shed * new_reinfections[i] +
+output(weighted_incidence[])<- new_infections[i] + reduced_shed * new_reinfections[i] +
   v_shed * v_new_infections[i] + v_reduced_shed * v_new_reinfections[i]
+output(inc_inf1[])<- new_infections[i]
+output(inc_inf2[])<- new_reinfections[i]
+output(inc_v_inf1[])<- v_new_infections[i]
+output(inc_v_inf2[])<- v_new_reinfections[i]
+
 ###########
 ## other ##
 ###########
@@ -502,6 +508,7 @@ dim(S_ini_p) <- N_age
 dim(yr) <- a_max
 dim(cohort_remaining) <- a_max
 dim(N_pop) <- N_age
+dim(weighted_incidence) <- N_age
 
 dim(norm_p_infection) <- N_age
 dim(norm_p_infection_mAb) <- N_age
@@ -573,12 +580,12 @@ dim(new_vR) <- N_age
 dim(new_vS2) <- N_age
 dim(new_vI2) <- N_age
 
-dim(new_vax_Sm) <- N_age
-dim(new_vax_S) <- N_age
-dim(new_vax_I) <- N_age
-dim(new_vax_R) <- N_age
-dim(new_vax_S2) <- N_age
-dim(new_vax_I2) <- N_age
+dim(vaxd_Sm) <- N_age
+dim(vaxd_S) <- N_age
+dim(vaxd_I) <- N_age
+dim(vaxd_R) <- N_age
+dim(vaxd_S2) <- N_age
+dim(vaxd_I2) <- N_age
 
 dim(births_det) <- 360
 dim(births_detr) <- 360
@@ -586,3 +593,8 @@ dim(births_detr) <- 360
 dim(N) <- N_age
 dim(ind1) <- 48
 dim(ind2) <- 48
+dim(inc_inf1) <- N_age
+dim(inc_inf2) <- N_age
+dim(inc_v_inf1) <- N_age
+dim(inc_v_inf2) <- N_age
+
